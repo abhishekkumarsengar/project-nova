@@ -1,0 +1,54 @@
+CREATE TABLE review (
+                 review_id uuid,
+                 user_id uuid,
+                 product_id uuid,
+                 rating int,
+                 headline text,
+                 review text,
+                 helpful int,
+                 created_at timestamp,
+                 updated_at timestamp,
+                 deleted_at timeStamp
+             );
+
+
+CREATE TABLE helpful_review (
+                 user_id uuid,
+                 product_id uuid,
+                 review_id uuid,
+                 created_at timestamp,
+                 updated_at timestamp,
+                 deleted_at timestamp
+             );
+
+
+CREATE TABLE aggregated_rating (
+                 product_id uuid,
+                 rating int,
+                 number_of_reviews int
+             );
+
+CREATE TABLE breakdown_rating (
+                 product_id uuid,
+                 rating_1 int,
+                 rating_2 int,
+                 rating_3 int,
+                 rating_4 int,
+                 rating_5 int
+             );
+
+INSERT INTO breakdown_rating(product_id, rating_1, rating_2, rating_3, rating_4, rating_5)
+VALUES ('0b82256b-7533-4513-8358-273510175576', 10, 20, 30, 40, 50);
+
+CREATE TABLE aggregated_rating (
+                 rating_id uuid,
+                 product_id uuid,
+                 rating int,
+                 number_of_reviews int
+             );
+
+
+grant all privileges on table review to postgres;
+grant all privileges on table helpful_review to postgres;
+grant all privileges on table aggregated_rating to postgres;
+grant all privileges on table breakdown_rating to postgres;
