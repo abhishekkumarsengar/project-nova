@@ -6,6 +6,7 @@ import com.project.nova.entity.Review;
 import com.project.nova.exceptions.PersistenceException;
 import com.project.nova.repository.ReviewsRepository;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.*;
@@ -136,10 +137,9 @@ public class ReviewsRepositoryImpl implements ReviewsRepository {
     @Override
     public void updateHelpfulInReviews(UUID productId, UUID reviewId) {
 
-        Query query = entityManager.createQuery("UPDATE Review review SET review.helpful = review.helpful + 1 where " +
+        entityManager.createQuery("UPDATE Review review SET review.helpful = review.helpful + 1 where " +
                 "review.productId = :productId and review.reviewId = :reviewId")
                 .setParameter("productId", productId)
-                .setParameter("reviewId", reviewId);
-        query.getResultList();
+                .setParameter("reviewId", reviewId).executeUpdate();
     }
 }

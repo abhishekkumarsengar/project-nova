@@ -25,33 +25,34 @@ public class BreakdownReviewRepositoryImpl implements BreakdownReviewRepository 
 
         switch (rating) {
             case 1:
-                entityManager.createQuery("UPDATE breakdownRating review SET review.rating_1 = review.rating_1 + 1" +
-                        " where review.productId = :productId")
-                        .setParameter("productId", productId);
+                entityManager.createQuery("UPDATE BreakdownRating breakdownRating SET breakdownRating.rating_1 = breakdownRating.rating_1 + 1" +
+                        " where breakdownRating.productId = :productId")
+                        .setParameter("productId", productId).executeUpdate();
                 break;
 
             case 2:
-                entityManager.createQuery("UPDATE BreakdownReviews review SET review.rating_2 = review.rating_2 + 1 " +
-                        "where review.productId = :productId")
-                        .setParameter("productId", productId);
+                entityManager.createQuery("UPDATE BreakdownRating breakdownRating SET breakdownRating.rating_2 = breakdownRating.rating_2 + 1 " +
+                        "where breakdownRating.productId = :productId")
+                        .setParameter("productId", productId).executeUpdate();
                 break;
 
             case 3:
                 entityManager.createQuery("UPDATE BreakdownRating breakdownRating SET breakdownRating.rating_3 = " +
                         "breakdownRating.rating_3 + 1 where breakdownRating.productId = :productId")
-                        .setParameter("productId", productId);
+                        .setParameter("productId", productId).executeUpdate();
                 break;
 
             case 4:
-                entityManager.createQuery("UPDATE BreakdownReviews review SET review.rating_4 = review.rating_4 + 1 " +
-                        "where review.productId = :productId")
-                        .setParameter("productId", productId);
+                entityManager.createQuery("UPDATE BreakdownRating breakdownRating SET breakdownRating.rating_4 = breakdownRating.rating_4 + 1 " +
+                        "where breakdownRating.productId = :productId")
+                        .setParameter("productId", productId).executeUpdate();
                 break;
 
             case 5:
-                entityManager.createQuery("UPDATE BreakdownReviews review SET review.rating_5 = review.rating_5 + 1 " +
-                        "where review.productId = :productId")
-                        .setParameter("productId", productId);
+                entityManager.createQuery("UPDATE BreakdownRating breakdownRating SET breakdownRating.rating_5 = breakdownRating.rating_5 + 1 " +
+                        "where breakdownRating.productId = :productId")
+                        .setParameter("productId", productId)
+                        .executeUpdate();
                 break;
         }
     }

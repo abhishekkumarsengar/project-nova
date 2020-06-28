@@ -76,12 +76,12 @@ public class ReviewsServiceImpl implements ReviewsService {
 
     @Override
     public Review createReview(UUID productId, ReviewRequest reviewRequest, BindingResult bindingResult) {
+        requestBodyValidation(bindingResult);
 
         Integer doesReviewExists = reviewsRepository.checkReviewExists(productId, reviewRequest.getUserId());
         if (doesReviewExists > 0) {
             throw new ReviewExistsException("User has already submitted a review for this product");
         }
-        requestBodyValidation(bindingResult);
 
         Review review = new Review();
         BeanUtils.copyProperties(reviewRequest, review);

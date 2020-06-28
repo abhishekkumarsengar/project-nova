@@ -44,5 +44,8 @@ public class HelpfulReview {
     private Timestamp deletedAt;
 
     public HelpfulReview(UUID userId, UUID productId, UUID reviewId) {
+        this.userId = userId;
+        this.productId = productId;
+        this.reviewId = reviewId;
     }
 }
