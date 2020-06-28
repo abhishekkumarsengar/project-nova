@@ -4,12 +4,9 @@ import com.project.nova.dto.Cursor;
 import com.project.nova.dto.ReviewResponse;
 import com.project.nova.entity.Review;
 import com.project.nova.exceptions.PersistenceException;
-import com.project.nova.repository.Reviews2Repository;
-import com.project.nova.service.impl.ReviewsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+import com.project.nova.repository.ReviewsRepository;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.*;
 import javax.transaction.Transactional;
@@ -17,7 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.*;
 
-public class ReviewsRepositoryImpl implements Reviews2Repository {
+@Repository
+public class ReviewsRepositoryImpl implements ReviewsRepository {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ReviewsRepositoryImpl.class);
 
@@ -96,24 +94,42 @@ public class ReviewsRepositoryImpl implements Reviews2Repository {
         return reviewResponse;
     }
 
+    @Transactional
     @Override
     public Review getReview(UUID productId, UUID reviewId) {
-        return null;
+        Query query = entityManager.createQuery("select r from Review r where r.productId = :productId and r.reviewId = :reviewId")
+                .setParameter("productId", productId)
+                .setParameter("reviewId", reviewId)
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE);
+        return (Review) query.getSingleResult();
     }
 
     @Override
-    public Page<Review> getReviewsByRatings(UUID productId, Integer rating, Pageable pageable) {
+    public Optional<ReviewResponse> getReviewsByRatings(UUID productId, Integer rating, Pageable pageable) {
         return null;
+//        ReviewResponse reviewResponse = new ReviewResponse();
+//
+//        Query query = entityManager.createQuery("select r from Review r where r.productId = :productId and r.rating = :rating")
+//                .setParameter("productId", productId)
+//                .setParameter("rating", rating);
+//        return
     }
 
+    @Transactional
     @Override
     public Integer checkReviewExists(UUID productId, UUID userId) {
-        return null;
+        Query query = entityManager.createQuery("select r from Review r where r.productId = :productId and r.userId = :userId")
+                .setParameter("productId", productId)
+                .setParameter("userId", userId)
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE);
+        return query.getResultList().size();
     }
 
+    @Transactional
     @Override
     public Review save(Review review) {
-        return null;
+        entityManager.merge(review);
+        return review;
     }
 
     @Transactional
@@ -123,9 +139,7 @@ public class ReviewsRepositoryImpl implements Reviews2Repository {
         Query query = entityManager.createQuery("UPDATE Review review SET review.helpful = review.helpful + 1 where " +
                 "review.productId = :productId and review.reviewId = :reviewId")
                 .setParameter("productId", productId)
-                .setParameter("reviewId", reviewId)
-                .setLockMode(LockModeType.PESSIMISTIC_WRITE);
-
+                .setParameter("reviewId", reviewId);
         query.getResultList();
     }
 }

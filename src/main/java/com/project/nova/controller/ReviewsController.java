@@ -1,21 +1,18 @@
 package com.project.nova.controller;
 
 import com.project.nova.dto.AggregatedReviewsResponse;
-import com.project.nova.dto.EntityResponse;
 import com.project.nova.dto.ReviewRequest;
 import com.project.nova.dto.ReviewResponse;
-import com.project.nova.entity.BreakdownReviews;
+import com.project.nova.entity.BreakdownRating;
 import com.project.nova.entity.Review;
 import com.project.nova.service.ReviewsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -88,7 +85,7 @@ public class ReviewsController {
 
     @GetMapping("/products/{productId}/reviews/breakdown")
     @ResponseStatus(HttpStatus.OK)
-    private BreakdownReviews getBreakDownRatings(@PathVariable(value = "productId") UUID productId) {
+    private BreakdownRating getBreakDownRatings(@PathVariable(value = "productId") UUID productId) {
         return reviewsService.getBreakDownReviewsByRating(productId);
     }
 

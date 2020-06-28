@@ -3,7 +3,7 @@ package com.project.nova.service;
 import com.project.nova.dto.AggregatedReviewsResponse;
 import com.project.nova.dto.ReviewRequest;
 import com.project.nova.dto.ReviewResponse;
-import com.project.nova.entity.BreakdownReviews;
+import com.project.nova.entity.BreakdownRating;
 import com.project.nova.entity.Review;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
@@ -26,5 +26,5 @@ public interface ReviewsService {
 
     AggregatedReviewsResponse getAggregatedReviewsByRating(UUID productId);
 
-    BreakdownReviews getBreakDownReviewsByRating(UUID productId);
+    BreakdownRating getBreakDownReviewsByRating(UUID productId);
 }

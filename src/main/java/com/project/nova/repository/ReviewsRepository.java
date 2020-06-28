@@ -1,36 +1,30 @@
 package com.project.nova.repository;
 
+import com.project.nova.dto.ReviewResponse;
 import com.project.nova.entity.Review;
-import org.hibernate.LockMode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryHints;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import javax.transaction.Transactional;
+
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ReviewsRepository extends PagingAndSortingRepository<Review, UUID> {
+public interface ReviewsRepository {
 
-    @Query(value = "select r from Review r where r.productId = :productId")
-    Page<Review> getAllReviewsByProductId(@Param("productId") UUID productId, Pageable pageable);
+        Optional<ReviewResponse> getAllReviewsByProductId(@Param("productId") UUID productId, String before, String after, Optional helpful, Pageable pageable);
 
-    @Query(value = "select r from Review r where r.productId = ?1 and r.reviewId = ?2")
-    Review getReview(UUID productId, UUID reviewId);
+        Review getReview(UUID productId, UUID reviewId);
 
-    @Query(value = "select r from Review r where r.productId = ?1 and r.rating = ?2")
-    Page<Review> getReviewsByRatings(UUID productId, Integer rating, Pageable pageable);
+        Optional<ReviewResponse> getReviewsByRatings(UUID productId, Integer rating, Pageable pageable);
 
-    @Query(value = "select count(r) from Review r where r.productId = ?1 and r.userId = ?2")
-    Integer checkReviewExists(UUID productId, UUID userId);
+        Integer checkReviewExists(UUID productId, UUID userId);
 
-    @Modifying
-    @Transactional
-    @Query(value = "UPDATE Review review SET review.helpful = review.helpful + 1 where review.productId = ?1 and review.reviewId = ?2")
-    void updateHelpfulInReviews(UUID productId, UUID reviewId);
+        Review save(Review review);
+
+        void updateHelpfulInReviews(UUID productId, UUID reviewId);
+
 }
+
+
