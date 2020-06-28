@@ -47,7 +47,6 @@ public class ReviewsServiceImpl implements ReviewsService {
     @Override
     public ReviewResponse getAllReviews(UUID productId, Integer rating, String before, String after, String helpful, Integer pageNumber, Integer pageSize) {
         ReviewResponse reviewResponse = new ReviewResponse();
-        List<Review> reviewResponseQueryResult = new ArrayList<>();
         if (rating == null) {
             try {
                 reviewResponse = reviewsRepository.
@@ -56,9 +55,9 @@ public class ReviewsServiceImpl implements ReviewsService {
                 logger.error("", lockingExceptions);
             }
         }
-//        else {
-//            reviewResponseQueryResult = getReviewByRating(productId, rating, pageNumber, pageSize);
-//        }
+        else {
+            reviewResponse = getReviewByRating(productId, rating, before, after, pageNumber, pageSize);
+        }
         return reviewResponse;
     }
 
@@ -69,10 +68,11 @@ public class ReviewsServiceImpl implements ReviewsService {
                 .orElseThrow(() -> new NotFoundException("No review found with this id"));
     }
 
-//    private List<Review> getReviewByRating(UUID productId, Integer rating, Integer pageNumber, Integer pageSize) {
-//        return Optional.of(reviewsRepository
-//                .getReviewsByRatings(productId, rating,  PageRequest.of(pageNumber, pageSize)).getContent()).get();
-//    }
+    private ReviewResponse getReviewByRating(UUID productId, Integer rating, String before, String after,
+                                             Integer pageNumber, Integer pageSize) {
+        return reviewsRepository
+                .getReviewsByRatings(productId, rating, before, after, PageRequest.of(pageNumber, pageSize)).get();
+    }
 
     @Override
     public Review createReview(UUID productId, ReviewRequest reviewRequest, BindingResult bindingResult) {

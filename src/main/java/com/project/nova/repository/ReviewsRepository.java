@@ -2,7 +2,6 @@ package com.project.nova.repository;
 
 import com.project.nova.dto.ReviewResponse;
 import com.project.nova.entity.Review;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -17,7 +16,7 @@ public interface ReviewsRepository {
 
         Review getReview(UUID productId, UUID reviewId);
 
-        Optional<ReviewResponse> getReviewsByRatings(UUID productId, Integer rating, Pageable pageable);
+        Optional<ReviewResponse> getReviewsByRatings(UUID productId, Integer rating, String before, String after, Pageable pageable);
 
         Integer checkReviewExists(UUID productId, UUID userId);
 

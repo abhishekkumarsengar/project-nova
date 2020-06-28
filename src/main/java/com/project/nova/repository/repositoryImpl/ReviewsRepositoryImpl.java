@@ -6,7 +6,6 @@ import com.project.nova.entity.Review;
 import com.project.nova.exceptions.PersistenceException;
 import com.project.nova.repository.ReviewsRepository;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.*;
@@ -47,18 +46,26 @@ public class ReviewsRepositoryImpl implements ReviewsRepository {
                     "where review.productId = :productId order by helpful desc");
         }
 
+        reviewList = setParameterValues(query, productId, pageable, base64Decoded);
+        return Optional.of(setCursorAndPaginationValues(reviewList, pageable, after, before));
+
+    }
+
+    private List<Review> setParameterValues(Query query, UUID productId, Pageable pageable, String base64Decoded) {
+
+        List reviewList = new ArrayList<>();
         try {
-             reviewList = query
-                     .setParameter("productId", productId)
-                     .setParameter("createdAt", Timestamp.valueOf(base64Decoded))
-                     .setFirstResult(pageable.getPageNumber() * pageable.getPageSize())
-                     .setMaxResults(pageable.getPageSize())
-                     .setLockMode(LockModeType.PESSIMISTIC_WRITE)
-                     .getResultList();
+            reviewList = query
+                    .setParameter("productId", productId)
+                    .setParameter("createdAt", Timestamp.valueOf(base64Decoded))
+                    .setFirstResult(pageable.getPageNumber() * pageable.getPageSize())
+                    .setMaxResults(pageable.getPageSize())
+                    .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                    .getResultList();
         } catch (PessimisticLockException | LockTimeoutException | PersistenceException lockingExceptions) {
             logger.error("", lockingExceptions);
         }
-        return Optional.of(setCursorAndPaginationValues(reviewList, pageable, after, before));
+        return reviewList;
     }
 
     /**
@@ -105,15 +112,30 @@ public class ReviewsRepositoryImpl implements ReviewsRepository {
         return (Review) query.getSingleResult();
     }
 
+    @Transactional
     @Override
-    public Optional<ReviewResponse> getReviewsByRatings(UUID productId, Integer rating, Pageable pageable) {
-        return null;
-//        ReviewResponse reviewResponse = new ReviewResponse();
-//
-//        Query query = entityManager.createQuery("select r from Review r where r.productId = :productId and r.rating = :rating")
-//                .setParameter("productId", productId)
-//                .setParameter("rating", rating);
-//        return
+    public Optional<ReviewResponse> getReviewsByRatings(UUID productId, Integer rating, String before, String after, Pageable pageable) {
+
+        List reviewList = new ArrayList<>();
+        Query query;
+        String base64Decoded = "";
+
+        if (after != null && !after.isEmpty()) {
+                byte[] afterDateBytes = Base64.getDecoder().decode(after);
+                base64Decoded = new String(afterDateBytes, StandardCharsets.UTF_8);
+                query = entityManager.createQuery("select review from Review review " +
+                        "where review.productId = :productId and review.rating = :rating and review.createdAt > :createdAt order by createdAt ASC")
+                        .setParameter("rating", rating);
+        } else {
+                byte[] beforeDateBytes = Base64.getDecoder().decode(before);
+                base64Decoded = new String(beforeDateBytes, StandardCharsets.UTF_8);
+                query = entityManager.createQuery("select review from Review review " +
+                        "where review.productId = :productId and review.rating = :rating and review.createdAt < :createdAt order by createdAt DESC")
+                        .setParameter("rating", rating);
+        }
+
+        reviewList = setParameterValues(query, productId, pageable, base64Decoded);
+        return Optional.of(setCursorAndPaginationValues(reviewList, pageable, after, before));
     }
 
     @Transactional
