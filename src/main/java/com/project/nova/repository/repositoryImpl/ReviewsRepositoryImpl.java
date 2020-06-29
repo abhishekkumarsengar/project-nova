@@ -34,13 +34,19 @@ public class ReviewsRepositoryImpl implements ReviewsRepository {
                 byte[] afterDateBytes = Base64.getDecoder().decode(after);
                 base64Decoded = new String(afterDateBytes, StandardCharsets.UTF_8);
                 query = entityManager.createQuery("select review from Review review " +
-                        "where review.productId = :productId and review.createdAt > :createdAt order by createdAt ASC");
-            } else {
+                        "where review.productId = :productId and review.createdAt > :createdAt order by createdAt ASC")
+                        .setParameter("createdAt", Timestamp.valueOf(base64Decoded));
+            } else if (before != null && !before.isEmpty()){
                 byte[] beforeDateBytes = Base64.getDecoder().decode(before);
                 base64Decoded = new String(beforeDateBytes, StandardCharsets.UTF_8);
                 query = entityManager.createQuery("select review from Review review " +
-                        "where review.productId = :productId and review.createdAt < :createdAt order by createdAt DESC");
+                        "where review.productId = :productId and review.createdAt < :createdAt order by createdAt DESC")
+                        .setParameter("createdAt", Timestamp.valueOf(base64Decoded));
+            } else {
+                query = entityManager.createQuery("select review from Review review " +
+                        "where review.productId = :productId order by createdAt DESC");
             }
+
         } else {
             query = entityManager.createQuery("select review from Review review " +
                     "where review.productId = :productId order by helpful desc");
@@ -57,7 +63,6 @@ public class ReviewsRepositoryImpl implements ReviewsRepository {
         try {
             reviewList = query
                     .setParameter("productId", productId)
-                    .setParameter("createdAt", Timestamp.valueOf(base64Decoded))
                     .setFirstResult(pageable.getPageNumber() * pageable.getPageSize())
                     .setMaxResults(pageable.getPageSize())
                     .setLockMode(LockModeType.PESSIMISTIC_WRITE)
