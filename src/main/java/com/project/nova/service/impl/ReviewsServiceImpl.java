@@ -19,6 +19,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import javax.persistence.LockTimeoutException;
 import javax.persistence.PessimisticLockException;
+import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,6 +33,9 @@ public class ReviewsServiceImpl implements ReviewsService {
     private HelpfulReviewsRepository helpfulReviewsRepository;
     private BreakdownReviewRepository breakdownReviewRepository;
     private ReviewsRepository reviewsRepository;
+
+    @Autowired
+    private Reviews2Repository reviews2Repository;
 
     @Autowired
     private ReviewsServiceImpl(ReviewsRepository reviewsRepository,
@@ -74,6 +78,7 @@ public class ReviewsServiceImpl implements ReviewsService {
                 .getReviewsByRatings(productId, rating, before, after, PageRequest.of(pageNumber, pageSize)).get();
     }
 
+    @Transactional
     @Override
     public Review createReview(UUID productId, ReviewRequest reviewRequest, BindingResult bindingResult) {
         requestBodyValidation(bindingResult);
@@ -110,7 +115,7 @@ public class ReviewsServiceImpl implements ReviewsService {
 
         updateBreakDownReviews(productId, reviewRequest.getRating());
         aggregatedReviewsRepository.save(aggregatedReviews);
-        return reviewsRepository.save(review);
+        return reviews2Repository.save(review);
     }
 
 
@@ -168,7 +173,27 @@ public class ReviewsServiceImpl implements ReviewsService {
     private void updateBreakDownReviews(UUID productId, Integer rating) {
         Integer ratingCount = breakdownReviewRepository.getRatingCountByProductId(productId);
         if (ratingCount > 0) {
-            breakdownReviewRepository.updateRatingByProductId(productId, rating);
+            switch (rating) {
+                case 1:
+                    breakdownReviewRepository.updateRating_1ByProductId(productId, rating);
+                    break;
+
+                case 2:
+                    breakdownReviewRepository.updateRating_2ByProductId(productId, rating);
+                    break;
+
+                case 3:
+                    breakdownReviewRepository.updateRating_3ByProductId(productId, rating);
+                    break;
+
+                case 4:
+                    breakdownReviewRepository.updateRating_4ByProductId(productId, rating);
+                    break;
+
+                case 5:
+                    breakdownReviewRepository.updateRating_5ByProductId(productId, rating);
+                    break;
+            }
         } else {
             BreakdownRating breakdownRating = new BreakdownRating();
             breakdownReviewRepository.save(breakdownRating.updateBreakDownReviews(productId, rating));
