@@ -38,6 +38,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ResponseMessage("Error", errorResponse), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(PersistenceException.class)
+    public ResponseEntity handlePersistenceException(PersistenceException e,
+                                                  HttpServletResponse response)
+            throws IOException {
+        log.error(e.getMessage(), e);
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        errorResponse.setMessage(e.getMessage());
+        return new ResponseEntity<>(new ResponseMessage("Error", errorResponse), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(ReviewExistsException.class)
     public ResponseEntity handleReviewExistsException(ReviewExistsException e,
                                                     HttpServletResponse response)

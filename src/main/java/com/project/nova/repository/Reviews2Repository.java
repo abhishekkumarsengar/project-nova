@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -23,7 +25,7 @@ public interface Reviews2Repository extends PagingAndSortingRepository<Review, U
     Page<Review> getReviewsByRatings(UUID productId, Integer rating, Pageable pageable);
 
     @Query(value = "select count(r) from Review r where r.productId = ?1 and r.userId = ?2")
-    Integer checkReviewExists(UUID productId, UUID userId);
+    Optional<Integer> checkReviewExists(UUID productId, UUID userId);
 
     @Modifying
     @Query(value = "UPDATE Review review SET review.helpful = review.helpful + 1 where review.productId = ?1 and review.reviewId = ?2")

@@ -80,37 +80,37 @@ public class ReviewsServiceImpl implements ReviewsService {
 
     @Transactional
     @Override
-    public Review createReview(UUID productId, ReviewRequest reviewRequest, BindingResult bindingResult) {
+    public Review createReview(UUID productId, ReviewRequest reviewRequest, BindingResult bindingResult) throws Exception {
         requestBodyValidation(bindingResult);
 
-        Integer doesReviewExists = reviewsRepository.checkReviewExists(productId, reviewRequest.getUserId());
+        Integer doesReviewExists = reviews2Repository.checkReviewExists(productId, reviewRequest.getUserId()).get();
         if (doesReviewExists > 0) {
             throw new ReviewExistsException("User has already submitted a review for this product");
         }
 
         Review review = new Review(UUID.randomUUID(), productId);
         BeanUtils.copyProperties(reviewRequest, review);
+        AggregatedReviews aggregatedReviews;
 
-        List<AggregatedReviews> aggregatedReviewsList = aggregatedReviewsRepository.getAggregatedReviewsByProductIdAndRating(productId, reviewRequest.getRating());
+        AggregatedReviews aggregatedReviewsByProductIdAndRating = aggregatedReviewsRepository
+                .getAggregatedReviewsByProductIdAndRating(productId, reviewRequest.getRating());
 
-        AggregatedReviews aggregatedReviews = new AggregatedReviews(productId, reviewRequest.getRating());
-        if (aggregatedReviewsList.isEmpty()) {
-            aggregatedReviews.setRatingId(UUID.randomUUID());
-            aggregatedReviews.setNumberOfReviews(1);
+        if (aggregatedReviewsByProductIdAndRating == null) {
+            aggregatedReviews = new AggregatedReviews(UUID.randomUUID(), productId, reviewRequest.getRating(), 1);
         } else {
-
-            aggregatedReviewsList.forEach(aggregatedReviewsObject -> {
-                if (aggregatedReviewsObject.getRating().equals(review.getRating())) {
-                    aggregatedReviews.setRatingId(aggregatedReviewsObject.getRatingId());
-                    aggregatedReviews.setNumberOfReviews(aggregatedReviewsObject.getNumberOfReviews() + 1);
-                } else {
-                    aggregatedReviews.setRatingId(UUID.randomUUID());
-                }
-            });
+            aggregatedReviews = new AggregatedReviews(aggregatedReviewsByProductIdAndRating.getRatingId(), productId,
+                    reviewRequest.getRating(), aggregatedReviewsByProductIdAndRating.getNumberOfReviews() + 1);
         }
-        updateBreakDownReviews(productId, reviewRequest.getRating());
-        aggregatedReviewsRepository.save(aggregatedReviews);
-        return reviews2Repository.save(review);
+
+        try {
+            aggregatedReviewsRepository.save(aggregatedReviews);
+            reviews2Repository.save(review);
+            updateBreakDownReviews(productId, reviewRequest.getRating());
+        } catch (RuntimeException exception) {
+            logger.error("Error while persisting data. Rolling back data.");
+            throw new PersistenceException("Error while persisting data. Rolling back data");
+        }
+        return review;
     }
 
 

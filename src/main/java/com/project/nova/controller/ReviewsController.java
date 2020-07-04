@@ -50,7 +50,7 @@ public class ReviewsController {
     @ResponseStatus(HttpStatus.CREATED)
     private Review createReview(@PathVariable UUID productId,
                                 @Validated @RequestBody ReviewRequest reviewRequest,
-                                BindingResult bindingResult, HttpServletRequest request) {
+                                BindingResult bindingResult, HttpServletRequest request) throws Exception {
         return reviewsService.createReview(productId, reviewRequest, bindingResult);
     }
 

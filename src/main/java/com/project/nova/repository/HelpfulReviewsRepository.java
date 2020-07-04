@@ -14,8 +14,6 @@ import java.util.UUID;
 @Repository
 public interface HelpfulReviewsRepository {
 
-    @Transactional
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(value = "select COUNT(review) from HelpfulReview review where review.productId = :productId and " +
             "review.reviewId = :reviewId and review.userId = :userId")
     Integer hasUserMarkedHelpFull(UUID productId, UUID reviewId, UUID userId);

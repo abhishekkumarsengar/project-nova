@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class PersistenceException extends RuntimeException{
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+public class PersistenceException extends RuntimeException {
     private String message;
 
 }
