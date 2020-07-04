@@ -2,6 +2,7 @@ package com.project.nova.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.project.nova.utils.Constants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.LastModifiedDate;
 import javax.persistence.*;
+import javax.validation.constraints.*;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -26,7 +28,15 @@ public class Review {
     private UUID reviewId;
     private UUID userId;
     private UUID productId;
+
+    @NotNull(message = Constants.RATING + Constants.FIELD_NULL)
+    @Min(1)
+    @Max(5)
     private Integer rating;
+
+    @NotNull(message = Constants.HEADLINE + Constants.FIELD_NULL)
+    @NotEmpty(message = Constants.HEADLINE + Constants.FIELD_INVALID)
+    @Size(max = 15)
     private String headline;
     private String review;
 

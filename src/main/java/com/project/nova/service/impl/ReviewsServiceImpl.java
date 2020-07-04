@@ -139,6 +139,8 @@ public class ReviewsServiceImpl implements ReviewsService {
         }
 
         HelpfulReview helpfulReview = new HelpfulReview(userId, productId, reviewId);
+
+        // Atomic
         helpfulReviewsRepository.save(helpfulReview);
         reviewsRepository.updateHelpfulInReviews(productId, reviewId);
     }
@@ -162,6 +164,17 @@ public class ReviewsServiceImpl implements ReviewsService {
         return Optional.ofNullable(breakdownReviewRepository.getRatingByProductId(productId))
                 .orElseThrow(() -> new NotFoundException("No ratings found for this product"));
     }
+
+    private void updateBreakDownReviews(UUID productId, Integer rating) {
+        Integer ratingCount = breakdownReviewRepository.getRatingCountByProductId(productId);
+        if (ratingCount > 0) {
+            breakdownReviewRepository.updateRatingByProductId(productId, rating);
+        } else {
+            BreakdownRating breakdownRating = new BreakdownRating();
+            breakdownReviewRepository.save(breakdownRating.updateBreakDownReviews(productId, rating));
+        }
+    }
+
 
     private void requestBodyValidation(BindingResult bindingResult) {
         if (bindingResult.hasFieldErrors()) {
@@ -223,15 +236,5 @@ public class ReviewsServiceImpl implements ReviewsService {
         }).collect(Collectors.toList());
     }
 
-    private void updateBreakDownReviews(UUID productId, Integer rating) {
-        Integer ratingCount = breakdownReviewRepository.getRatingCountByProductId(productId);
-        if (ratingCount > 0) {
-            breakdownReviewRepository.updateRatingByProductId(productId, rating);
-        } else {
-            BreakdownRating breakdownRating = new BreakdownRating();
-            breakdownRating = breakdownRating.updateBreakDownReviews(productId, rating);
-            breakdownReviewRepository.save(breakdownRating);
-        }
 
-    }
 }
