@@ -53,4 +53,9 @@ public class Review {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS", timezone = "IST")
     private Timestamp deletedAt;
+
+    public Review(UUID reviewId, UUID productId) {
+        this.reviewId = reviewId;
+        this.productId = productId;
+    }
 }

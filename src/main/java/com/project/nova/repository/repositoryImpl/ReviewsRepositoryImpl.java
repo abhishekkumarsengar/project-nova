@@ -29,7 +29,7 @@ public class ReviewsRepositoryImpl implements ReviewsRepository {
         Query query;
         String base64Decoded = "";
 
-        if (helpful.isEmpty()) {
+        if (helpful.isPresent()) {
             if (after != null && !after.isEmpty()) {
                 byte[] afterDateBytes = Base64.getDecoder().decode(after);
                 base64Decoded = new String(afterDateBytes, StandardCharsets.UTF_8);

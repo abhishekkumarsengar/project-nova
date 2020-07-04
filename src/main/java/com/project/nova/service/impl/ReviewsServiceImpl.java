@@ -15,11 +15,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import javax.persistence.LockTimeoutException;
 import javax.persistence.PessimisticLockException;
-import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,19 +33,19 @@ public class ReviewsServiceImpl implements ReviewsService {
     private HelpfulReviewsRepository helpfulReviewsRepository;
     private BreakdownReviewRepository breakdownReviewRepository;
     private ReviewsRepository reviewsRepository;
-
-    @Autowired
     private Reviews2Repository reviews2Repository;
 
     @Autowired
-    private ReviewsServiceImpl(ReviewsRepository reviewsRepository,
+    ReviewsServiceImpl(ReviewsRepository reviewsRepository,
                                AggregatedReviewsRepository aggregatedReviewsRepository,
                                HelpfulReviewsRepository helpfulReviewsRepository,
-                               BreakdownReviewRepository breakdownReviewRepository) {
+                               BreakdownReviewRepository breakdownReviewRepository,
+                               Reviews2Repository reviews2Repository) {
         this.reviewsRepository = reviewsRepository;
         this.aggregatedReviewsRepository = aggregatedReviewsRepository;
         this.helpfulReviewsRepository = helpfulReviewsRepository;
         this.breakdownReviewRepository = breakdownReviewRepository;
+        this.reviews2Repository = reviews2Repository;
     }
 
     @Override
@@ -88,14 +88,12 @@ public class ReviewsServiceImpl implements ReviewsService {
             throw new ReviewExistsException("User has already submitted a review for this product");
         }
 
-        Review review = new Review();
+        Review review = new Review(UUID.randomUUID(), productId);
         BeanUtils.copyProperties(reviewRequest, review);
-        review.setReviewId(UUID.randomUUID());
-        review.setProductId(productId);
 
         List<AggregatedReviews> aggregatedReviewsList = aggregatedReviewsRepository.getAggregatedReviewsByProductIdAndRating(productId, reviewRequest.getRating());
 
-        AggregatedReviews aggregatedReviews = new AggregatedReviews();
+        AggregatedReviews aggregatedReviews = new AggregatedReviews(productId, reviewRequest.getRating());
         if (aggregatedReviewsList.isEmpty()) {
             aggregatedReviews.setRatingId(UUID.randomUUID());
             aggregatedReviews.setNumberOfReviews(1);
@@ -110,9 +108,6 @@ public class ReviewsServiceImpl implements ReviewsService {
                 }
             });
         }
-        aggregatedReviews.setProductId(productId);
-        aggregatedReviews.setRating(reviewRequest.getRating());
-
         updateBreakDownReviews(productId, reviewRequest.getRating());
         aggregatedReviewsRepository.save(aggregatedReviews);
         return reviews2Repository.save(review);
