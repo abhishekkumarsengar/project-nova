@@ -4,6 +4,7 @@ import com.project.nova.dto.AggregatedReviewsResponse;
 import com.project.nova.dto.ReviewRequest;
 import com.project.nova.dto.ReviewResponse;
 import com.project.nova.entity.BreakdownRating;
+import com.project.nova.entity.Rating;
 import com.project.nova.entity.Review;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;

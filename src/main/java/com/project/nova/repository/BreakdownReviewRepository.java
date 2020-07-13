@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.LockModeType;
 import java.util.UUID;
@@ -16,6 +17,7 @@ public interface BreakdownReviewRepository extends PagingAndSortingRepository<Br
     @Query(value = "select count(review) from BreakdownRating review where review.productId = ?1")
     Integer getRatingCountByProductId(UUID productId);
 
+    @Transactional
     @Lock(value = LockModeType.PESSIMISTIC_READ)
     @Query(value = "select review from BreakdownRating review where review.productId = ?1")
     BreakdownRating getRatingByProductId(UUID productId);

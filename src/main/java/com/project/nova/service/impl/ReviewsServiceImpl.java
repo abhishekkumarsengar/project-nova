@@ -3,10 +3,7 @@ package com.project.nova.service.impl;
 import com.project.nova.dto.AggregatedReviewsResponse;
 import com.project.nova.dto.ReviewRequest;
 import com.project.nova.dto.ReviewResponse;
-import com.project.nova.entity.AggregatedReviews;
-import com.project.nova.entity.BreakdownRating;
-import com.project.nova.entity.HelpfulReview;
-import com.project.nova.entity.Review;
+import com.project.nova.entity.*;
 import com.project.nova.exceptions.*;
 import com.project.nova.repository.*;
 import com.project.nova.service.ReviewsService;
@@ -108,9 +105,9 @@ public class ReviewsServiceImpl implements ReviewsService {
         }
 
         try {
-            aggregatedReviewsRepository.save(aggregatedReviews);
+//            aggregatedReviewsRepository.save(aggregatedReviews);
             reviewsRepository.save(review);
-            updateBreakDownReviews(productId, reviewRequest.getRating());
+//            updateBreakDownReviews(productId, reviewRequest.getRating());
         } catch (RuntimeException exception) {
             logger.error("Error while persisting data. Rolling back data.");
             throw new PersistenceException("Error while persisting data. Rolling back data");
@@ -146,29 +143,31 @@ public class ReviewsServiceImpl implements ReviewsService {
 
         HelpfulReview helpfulReview = new HelpfulReview(userId, productId, reviewId);
 
-        // Atomic
         helpfulReviewsRepository.save(helpfulReview);
         reviewsRepository.updateHelpfulInReviews(productId, reviewId);
     }
 
     @Override
     public AggregatedReviewsResponse getAggregatedReviewsByRating(UUID productId) {
-        List<AggregatedReviews> aggregatedReviewsList = aggregatedReviewsRepository.getAggregatedReviewsByProductId(productId);
-        AggregatedReviewsResponse aggregatedReviewsResponse = new AggregatedReviewsResponse();
-        Double rating  = aggregatedReviewsList.stream()
-                .filter(aggregatedReviews -> aggregatedReviews.getRating() > 0).mapToInt(AggregatedReviews::getRating).average().getAsDouble();
-        int numberOfReviews  = aggregatedReviewsList.stream()
-                .filter(aggregatedReviews -> aggregatedReviews.getNumberOfReviews() > 0).mapToInt(AggregatedReviews::getNumberOfReviews).sum();
-        aggregatedReviewsResponse.setRating(rating);
-        aggregatedReviewsResponse.setNumberOfReviews(numberOfReviews);
-
-        return aggregatedReviewsResponse;
+        List<Rating> aggregatedReviewsList = aggregatedReviewsRepository.getAggregatedReviewsByProductId(productId);
+        double rating = 0;
+        int numberOfReviews = 0;
+        if (!aggregatedReviewsList.isEmpty()) {
+            rating  = aggregatedReviewsList.stream()
+                    .filter(aggregatedReviews -> aggregatedReviews.getRating() > 0).mapToInt(Rating::getRating).average().getAsDouble();
+            numberOfReviews  = aggregatedReviewsList.stream()
+                    .filter(aggregatedReviews -> aggregatedReviews.getNumberOfReviews() > 0).mapToInt(Rating::getNumberOfReviews).sum();
+        }
+        return new AggregatedReviewsResponse(rating, numberOfReviews);
     }
 
     @Override
     public BreakdownRating getBreakDownReviewsByRating(UUID productId) {
-        return Optional.ofNullable(breakdownReviewRepository.getRatingByProductId(productId))
+        BreakdownRating breakdownRating = new BreakdownRating();
+        Rating rating = Optional.ofNullable(aggregatedReviewsRepository.getRatingByProductId(productId))
                 .orElseThrow(() -> new NotFoundException("No ratings found for this product"));
+        BeanUtils.copyProperties(rating, breakdownRating);
+        return breakdownRating;
     }
 
     private void updateBreakDownReviews(UUID productId, Integer rating) {
