@@ -21,8 +21,6 @@ public class ReviewResponse {
 
     private List<Review> reviews;
 
-    private Cursor cursors;
-
     /**
      * The Page number.
      */

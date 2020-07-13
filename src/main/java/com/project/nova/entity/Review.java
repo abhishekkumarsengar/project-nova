@@ -38,6 +38,7 @@ public class Review {
     @NotEmpty(message = Constants.HEADLINE + Constants.FIELD_INVALID)
     @Size(max = 15)
     private String headline;
+
     private String review;
 
     @Column(name="helpful", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")

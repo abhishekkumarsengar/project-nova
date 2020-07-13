@@ -31,12 +31,10 @@ public class ReviewsController {
     private ReviewResponse getAllReviews(@PathVariable(value = "productId") UUID productId,
                                          @RequestParam(value = "rating", required = false) Integer rating,
                                          @RequestParam(value = "order", required = false) String helpful,
-                                         @RequestParam(value = "before", required = false) String before,
-                                         @RequestParam(value = "after", required = false) String after,
                                          @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
                                          @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
         // Sorting field - sort, order
-        return reviewsService.getAllReviews(productId, rating, before, after, helpful, pageNumber, pageSize);
+        return reviewsService.getAllReviews(productId, rating, helpful, pageNumber, pageSize);
     }
 
     @GetMapping("/products/{productId}/reviews/{reviewId}")

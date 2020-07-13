@@ -14,9 +14,11 @@ import java.util.UUID;
 @Repository
 public interface AggregatedReviewsRepository extends CrudRepository<AggregatedReviews, UUID> {
 
+    @Lock(value = LockModeType.PESSIMISTIC_READ)
     @Query(value = "select reviews from AggregatedReviews reviews where reviews.productId = :productId")
     List<AggregatedReviews> getAggregatedReviewsByProductId(UUID productId);
 
+    @Lock(value = LockModeType.PESSIMISTIC_READ)
     @Query(value = "select reviews from AggregatedReviews reviews where reviews.productId = :productId and reviews.rating = :rating")
     AggregatedReviews getAggregatedReviewsByProductIdAndRating(UUID productId, Integer rating);
 }

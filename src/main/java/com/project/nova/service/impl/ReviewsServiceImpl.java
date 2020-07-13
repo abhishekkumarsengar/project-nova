@@ -13,6 +13,7 @@ import com.project.nova.service.ReviewsService;
 import com.project.nova.utils.Constants;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,35 +34,40 @@ public class ReviewsServiceImpl implements ReviewsService {
     private HelpfulReviewsRepository helpfulReviewsRepository;
     private BreakdownReviewRepository breakdownReviewRepository;
     private ReviewsRepository reviewsRepository;
-    private Reviews2Repository reviews2Repository;
 
     @Autowired
     ReviewsServiceImpl(ReviewsRepository reviewsRepository,
                                AggregatedReviewsRepository aggregatedReviewsRepository,
                                HelpfulReviewsRepository helpfulReviewsRepository,
                                BreakdownReviewRepository breakdownReviewRepository,
-                               Reviews2Repository reviews2Repository) {
+                               ReviewsRepository reviews2Repository) {
         this.reviewsRepository = reviewsRepository;
         this.aggregatedReviewsRepository = aggregatedReviewsRepository;
         this.helpfulReviewsRepository = helpfulReviewsRepository;
         this.breakdownReviewRepository = breakdownReviewRepository;
-        this.reviews2Repository = reviews2Repository;
+        this.reviewsRepository = reviews2Repository;
     }
 
     @Override
-    public ReviewResponse getAllReviews(UUID productId, Integer rating, String before, String after, String helpful, Integer pageNumber, Integer pageSize) {
+    public ReviewResponse getAllReviews(UUID productId, Integer rating, String helpful, Integer pageNumber, Integer pageSize) {
         ReviewResponse reviewResponse = new ReviewResponse();
+        Page<Review> reviewResponseQueryResult = null;
+
         if (rating == null) {
             try {
-                reviewResponse = reviewsRepository.
-                        getAllReviewsByProductId(productId, before, after, Optional.ofNullable(helpful), PageRequest.of(pageNumber, pageSize)).get();
+                reviewResponseQueryResult = reviewsRepository.getAllReviewsByProductId(productId, PageRequest.of(pageNumber, pageSize));
             } catch (PessimisticLockException | LockTimeoutException | PersistenceException lockingExceptions) {
                 logger.error("", lockingExceptions);
             }
         }
         else {
-            reviewResponse = getReviewByRating(productId, rating, before, after, pageNumber, pageSize);
+            reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize));
+
         }
+        reviewResponse.setReviews(reviewResponseQueryResult.getContent());
+        reviewResponse.setPageNumber(pageNumber);
+        reviewResponse.setPageSize(pageSize);
+        reviewResponse.setTotalSize((int) reviewResponseQueryResult.getTotalElements());
         return reviewResponse;
     }
 
@@ -71,19 +77,18 @@ public class ReviewsServiceImpl implements ReviewsService {
         return Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
                 .orElseThrow(() -> new NotFoundException("No review found with this id"));
     }
-
-    private ReviewResponse getReviewByRating(UUID productId, Integer rating, String before, String after,
-                                             Integer pageNumber, Integer pageSize) {
-        return reviewsRepository
-                .getReviewsByRatings(productId, rating, before, after, PageRequest.of(pageNumber, pageSize)).get();
-    }
+//
+//    private ReviewResponse getReviewByRating(UUID productId, Integer rating,
+//                                             Integer pageNumber, Integer pageSize) {
+//        return reviews2Repository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize));
+//    }
 
     @Transactional
     @Override
     public Review createReview(UUID productId, ReviewRequest reviewRequest, BindingResult bindingResult) throws Exception {
         requestBodyValidation(bindingResult);
 
-        Integer doesReviewExists = reviews2Repository.checkReviewExists(productId, reviewRequest.getUserId()).get();
+        Integer doesReviewExists = reviewsRepository.checkReviewExists(productId, reviewRequest.getUserId()).get();
         if (doesReviewExists > 0) {
             throw new ReviewExistsException("User has already submitted a review for this product");
         }
@@ -104,7 +109,7 @@ public class ReviewsServiceImpl implements ReviewsService {
 
         try {
             aggregatedReviewsRepository.save(aggregatedReviews);
-            reviews2Repository.save(review);
+            reviewsRepository.save(review);
             updateBreakDownReviews(productId, reviewRequest.getRating());
         } catch (RuntimeException exception) {
             logger.error("Error while persisting data. Rolling back data.");
@@ -130,6 +135,7 @@ public class ReviewsServiceImpl implements ReviewsService {
         reviewsRepository.save(review);
     }
 
+    @Transactional
     @Override
     public void isReviewHelpFull(UUID productId, UUID reviewId, UUID userId) {
         Integer userMarkedHelpFull = helpfulReviewsRepository.hasUserMarkedHelpFull(productId, reviewId, userId);

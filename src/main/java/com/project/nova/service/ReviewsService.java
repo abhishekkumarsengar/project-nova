@@ -12,7 +12,7 @@ import java.util.UUID;
 @Service
 public interface ReviewsService {
 
-    ReviewResponse getAllReviews(UUID productId, Integer rating, String before, String after, String helpful, Integer pageNumber, Integer pageSize);
+    ReviewResponse getAllReviews(UUID productId, Integer rating, String helpful, Integer pageNumber, Integer pageSize);
 
     Review getOneReview(UUID productId, UUID reviewId);
 
