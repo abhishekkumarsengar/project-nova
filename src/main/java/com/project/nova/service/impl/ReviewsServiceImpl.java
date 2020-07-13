@@ -1,11 +1,10 @@
 package com.project.nova.service.impl;
 
 import com.project.nova.dto.AggregatedReviewsResponse;
-import com.project.nova.dto.Cursor;
 import com.project.nova.dto.ReviewRequest;
 import com.project.nova.dto.ReviewResponse;
 import com.project.nova.entity.AggregatedReviews;
-import com.project.nova.entity.BreakdownReviews;
+import com.project.nova.entity.BreakdownRating;
 import com.project.nova.entity.HelpfulReview;
 import com.project.nova.entity.Review;
 import com.project.nova.exceptions.*;
@@ -14,13 +13,14 @@ import com.project.nova.service.ReviewsService;
 import com.project.nova.utils.Constants;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import javax.persistence.LockTimeoutException;
 import javax.persistence.PessimisticLockException;
-import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,39 +30,44 @@ public class ReviewsServiceImpl implements ReviewsService {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ReviewsServiceImpl.class);
 
-    private ReviewsRepository reviewsRepository;
     private AggregatedReviewsRepository aggregatedReviewsRepository;
     private HelpfulReviewsRepository helpfulReviewsRepository;
     private BreakdownReviewRepository breakdownReviewRepository;
+    private ReviewsRepository reviewsRepository;
 
     @Autowired
-    private Reviews2Repository reviews2Repository;
-
-    @Autowired
-    private ReviewsServiceImpl(ReviewsRepository reviewsRepository,
+    ReviewsServiceImpl(ReviewsRepository reviewsRepository,
                                AggregatedReviewsRepository aggregatedReviewsRepository,
                                HelpfulReviewsRepository helpfulReviewsRepository,
-                               BreakdownReviewRepository breakdownReviewRepository) {
+                               BreakdownReviewRepository breakdownReviewRepository,
+                               ReviewsRepository reviews2Repository) {
         this.reviewsRepository = reviewsRepository;
         this.aggregatedReviewsRepository = aggregatedReviewsRepository;
         this.helpfulReviewsRepository = helpfulReviewsRepository;
         this.breakdownReviewRepository = breakdownReviewRepository;
+        this.reviewsRepository = reviews2Repository;
     }
 
     @Override
-    public ReviewResponse getAllReviews(UUID productId, Integer rating, String before, String after, String helpful, Integer pageNumber, Integer pageSize) {
+    public ReviewResponse getAllReviews(UUID productId, Integer rating, String helpful, Integer pageNumber, Integer pageSize) {
         ReviewResponse reviewResponse = new ReviewResponse();
-        List<Review> reviewResponseQueryResult = new ArrayList<>();
+        Page<Review> reviewResponseQueryResult = null;
+
         if (rating == null) {
             try {
-                reviewResponse = reviews2Repository.
-                        getAllReviewsByProductId(productId, before, after, Optional.ofNullable(helpful), PageRequest.of(pageNumber, pageSize)).get();
+                reviewResponseQueryResult = reviewsRepository.getAllReviewsByProductId(productId, PageRequest.of(pageNumber, pageSize));
             } catch (PessimisticLockException | LockTimeoutException | PersistenceException lockingExceptions) {
                 logger.error("", lockingExceptions);
             }
-        } else {
-            reviewResponseQueryResult = getReviewByRating(productId, rating, pageNumber, pageSize);
         }
+        else {
+            reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize));
+
+        }
+        reviewResponse.setReviews(reviewResponseQueryResult.getContent());
+        reviewResponse.setPageNumber(pageNumber);
+        reviewResponse.setPageSize(pageSize);
+        reviewResponse.setTotalSize((int) reviewResponseQueryResult.getTotalElements());
         return reviewResponse;
     }
 
@@ -72,67 +77,65 @@ public class ReviewsServiceImpl implements ReviewsService {
         return Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
                 .orElseThrow(() -> new NotFoundException("No review found with this id"));
     }
+//
+//    private ReviewResponse getReviewByRating(UUID productId, Integer rating,
+//                                             Integer pageNumber, Integer pageSize) {
+//        return reviews2Repository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize));
+//    }
 
-    private List<Review> getReviewByRating(UUID productId, Integer rating, Integer pageNumber, Integer pageSize) {
-        return Optional.of(reviewsRepository
-                .getReviewsByRatings(productId, rating,  PageRequest.of(pageNumber, pageSize)).getContent()).get();
-    }
-
+    @Transactional
     @Override
-    public Review createReview(UUID productId, ReviewRequest reviewRequest, BindingResult bindingResult) {
+    public Review createReview(UUID productId, ReviewRequest reviewRequest, BindingResult bindingResult) throws Exception {
+        requestBodyValidation(bindingResult);
 
-        Integer doesReviewExists = reviewsRepository.checkReviewExists(productId, reviewRequest.getUserId());
+        Integer doesReviewExists = reviewsRepository.checkReviewExists(productId, reviewRequest.getUserId()).get();
         if (doesReviewExists > 0) {
             throw new ReviewExistsException("User has already submitted a review for this product");
         }
-        requestBodyValidation(bindingResult);
 
-        Review review = new Review();
+        Review review = new Review(UUID.randomUUID(), productId);
         BeanUtils.copyProperties(reviewRequest, review);
-        review.setReviewId(UUID.randomUUID());
-        review.setProductId(productId);
+        AggregatedReviews aggregatedReviews;
 
-        List<AggregatedReviews> aggregatedReviewsList = aggregatedReviewsRepository.getAggregatedReviewsByProductIdAndRating(productId, reviewRequest.getRating());
+        AggregatedReviews aggregatedReviewsByProductIdAndRating = aggregatedReviewsRepository
+                .getAggregatedReviewsByProductIdAndRating(productId, reviewRequest.getRating());
 
-        AggregatedReviews aggregatedReviews = new AggregatedReviews();
-        if (aggregatedReviewsList.isEmpty()) {
-            aggregatedReviews.setRatingId(UUID.randomUUID());
-            aggregatedReviews.setNumberOfReviews(1);
+        if (aggregatedReviewsByProductIdAndRating == null) {
+            aggregatedReviews = new AggregatedReviews(UUID.randomUUID(), productId, reviewRequest.getRating(), 1);
         } else {
-
-            aggregatedReviewsList.forEach(aggregatedReviewsObject -> {
-                if (aggregatedReviewsObject.getRating().equals(review.getRating())) {
-                    aggregatedReviews.setRatingId(aggregatedReviewsObject.getRatingId());
-                    aggregatedReviews.setNumberOfReviews(aggregatedReviewsObject.getNumberOfReviews() + 1);
-                } else {
-                    aggregatedReviews.setRatingId(UUID.randomUUID());
-                }
-            });
+            aggregatedReviews = new AggregatedReviews(aggregatedReviewsByProductIdAndRating.getRatingId(), productId,
+                    reviewRequest.getRating(), aggregatedReviewsByProductIdAndRating.getNumberOfReviews() + 1);
         }
-        aggregatedReviews.setProductId(productId);
-        aggregatedReviews.setRating(reviewRequest.getRating());
 
-//        updateBreakDownReviews(productId, reviewRequest.getRating());
-        aggregatedReviewsRepository.save(aggregatedReviews);
-        return reviewsRepository.save(review);
+        try {
+            aggregatedReviewsRepository.save(aggregatedReviews);
+            reviewsRepository.save(review);
+            updateBreakDownReviews(productId, reviewRequest.getRating());
+        } catch (RuntimeException exception) {
+            logger.error("Error while persisting data. Rolling back data.");
+            throw new PersistenceException("Error while persisting data. Rolling back data");
+        }
+        return review;
     }
 
 
     @Override
     public Review updateReview(UUID productId, UUID reviewId, ReviewRequest reviewRequest, BindingResult bindingResult) {
-        Review review = reviewsRepository.findById(reviewId).orElseThrow(() -> new NotFoundException("Review not found"));
+        Review review = Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
+                .orElseThrow(() -> new NotFoundException("Review not found"));
         BeanUtils.copyProperties(reviewRequest, review);
-        reviewsRepository.save(review);
-        return review;
+        return reviewsRepository.save(review);
     }
 
     @Override
     public void deleteReview(UUID productId, UUID reviewId) {
-        Review review = reviewsRepository.findById(reviewId).orElseThrow(() -> new NotFoundException("Review not found"));
+        Review review = Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
+                .orElseThrow(() -> new NotFoundException("Review not found"));
         review.setDeletedAt(new Timestamp(new Date().getTime()));
         reviewsRepository.save(review);
     }
 
+    @Transactional
     @Override
     public void isReviewHelpFull(UUID productId, UUID reviewId, UUID userId) {
         Integer userMarkedHelpFull = helpfulReviewsRepository.hasUserMarkedHelpFull(productId, reviewId, userId);
@@ -142,6 +145,8 @@ public class ReviewsServiceImpl implements ReviewsService {
         }
 
         HelpfulReview helpfulReview = new HelpfulReview(userId, productId, reviewId);
+
+        // Atomic
         helpfulReviewsRepository.save(helpfulReview);
         reviewsRepository.updateHelpfulInReviews(productId, reviewId);
     }
@@ -161,9 +166,41 @@ public class ReviewsServiceImpl implements ReviewsService {
     }
 
     @Override
-    public BreakdownReviews getBreakDownReviewsByRating(UUID productId) {
-        return breakdownReviewRepository.getBreakdownReviewsByProductId(productId);
+    public BreakdownRating getBreakDownReviewsByRating(UUID productId) {
+        return Optional.ofNullable(breakdownReviewRepository.getRatingByProductId(productId))
+                .orElseThrow(() -> new NotFoundException("No ratings found for this product"));
     }
+
+    private void updateBreakDownReviews(UUID productId, Integer rating) {
+        Integer ratingCount = breakdownReviewRepository.getRatingCountByProductId(productId);
+        if (ratingCount > 0) {
+            switch (rating) {
+                case 1:
+                    breakdownReviewRepository.updateRating_1ByProductId(productId, rating);
+                    break;
+
+                case 2:
+                    breakdownReviewRepository.updateRating_2ByProductId(productId, rating);
+                    break;
+
+                case 3:
+                    breakdownReviewRepository.updateRating_3ByProductId(productId, rating);
+                    break;
+
+                case 4:
+                    breakdownReviewRepository.updateRating_4ByProductId(productId, rating);
+                    break;
+
+                case 5:
+                    breakdownReviewRepository.updateRating_5ByProductId(productId, rating);
+                    break;
+            }
+        } else {
+            BreakdownRating breakdownRating = new BreakdownRating();
+            breakdownReviewRepository.save(breakdownRating.updateBreakDownReviews(productId, rating));
+        }
+    }
+
 
     private void requestBodyValidation(BindingResult bindingResult) {
         if (bindingResult.hasFieldErrors()) {
@@ -225,55 +262,5 @@ public class ReviewsServiceImpl implements ReviewsService {
         }).collect(Collectors.toList());
     }
 
-    private void updateBreakDownReviews(UUID productId, Integer rating) {
-        BreakdownReviews breakdownReviews = breakdownReviewRepository.getBreakdownReviewsByProductId(productId);
-        if (breakdownReviews != null) {
-            switch (rating) {
-                case 1:
-                    breakdownReviewRepository.updateRating_1_ByProductId(productId);
-                    break;
 
-                case 2:
-                    breakdownReviewRepository.updateRating_2_ByProductId(productId);
-                    break;
-
-                case 3:
-                    breakdownReviewRepository.updateRating_3_ByProductId(productId);
-                    break;
-
-                case 4:
-                    breakdownReviewRepository.updateRating_4_ByProductId(productId);
-                    break;
-
-                case 5:
-                    breakdownReviewRepository.updateRating_5_ByProductId(productId);
-                    break;
-            }
-        } else {
-            breakdownReviews = new BreakdownReviews();
-            switch (rating) {
-                case 1:
-                    breakdownReviews.setRating_1(1);
-                    break;
-
-                case 2:
-                    breakdownReviews.setRating_2(1);
-                    break;
-
-                case 3:
-                    breakdownReviews.setRating_3(1);
-                    break;
-
-                case 4:
-                    breakdownReviews.setRating_4(1);
-                    break;
-
-                case 5:
-                    breakdownReviews.setRating_5(1);
-                    break;
-            }
-        }
-        breakdownReviews.setProductId(productId);
-        breakdownReviewRepository.save(breakdownReviews);
-    }
 }

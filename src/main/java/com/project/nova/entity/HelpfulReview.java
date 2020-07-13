@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -34,19 +35,17 @@ public class HelpfulReview {
     @NotNull(message = Constants.REVIEW_ID + Constants.FIELD_NULL)
     private UUID reviewId;
 
-//    private Timestamp createdAt;
-//    private Timestamp updatedAt;
-//    private Timestamp deletedAt;
-//
-//    @PrePersist
-//    public void onPrePersist() {
-//        setCreatedAt(new Timestamp(new Date().getTime()));
-//    }
-//
-//    @PreUpdate
-//    public void onPreUpdate() {
-//        setUpdatedAt(new Timestamp(new Date().getTime()));
-//    }
+    @CreationTimestamp
+    private Timestamp createdAt;
 
+    @LastModifiedDate
+    private Timestamp updatedAt;
+    
+    private Timestamp deletedAt;
 
+    public HelpfulReview(UUID userId, UUID productId, UUID reviewId) {
+        this.userId = userId;
+        this.productId = productId;
+        this.reviewId = reviewId;
+    }
 }

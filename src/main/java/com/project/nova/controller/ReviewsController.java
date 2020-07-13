@@ -1,21 +1,18 @@
 package com.project.nova.controller;
 
 import com.project.nova.dto.AggregatedReviewsResponse;
-import com.project.nova.dto.EntityResponse;
 import com.project.nova.dto.ReviewRequest;
 import com.project.nova.dto.ReviewResponse;
-import com.project.nova.entity.BreakdownReviews;
+import com.project.nova.entity.BreakdownRating;
 import com.project.nova.entity.Review;
 import com.project.nova.service.ReviewsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -34,12 +31,10 @@ public class ReviewsController {
     private ReviewResponse getAllReviews(@PathVariable(value = "productId") UUID productId,
                                          @RequestParam(value = "rating", required = false) Integer rating,
                                          @RequestParam(value = "order", required = false) String helpful,
-                                         @RequestParam(value = "before", required = false) String before,
-                                         @RequestParam(value = "after", required = false) String after,
                                          @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
                                          @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
         // Sorting field - sort, order
-        return reviewsService.getAllReviews(productId, rating, before, after, helpful, pageNumber, pageSize);
+        return reviewsService.getAllReviews(productId, rating, helpful, pageNumber, pageSize);
     }
 
     @GetMapping("/products/{productId}/reviews/{reviewId}")
@@ -53,7 +48,7 @@ public class ReviewsController {
     @ResponseStatus(HttpStatus.CREATED)
     private Review createReview(@PathVariable UUID productId,
                                 @Validated @RequestBody ReviewRequest reviewRequest,
-                                BindingResult bindingResult, HttpServletRequest request) {
+                                BindingResult bindingResult, HttpServletRequest request) throws Exception {
         return reviewsService.createReview(productId, reviewRequest, bindingResult);
     }
 
@@ -88,7 +83,7 @@ public class ReviewsController {
 
     @GetMapping("/products/{productId}/reviews/breakdown")
     @ResponseStatus(HttpStatus.OK)
-    private BreakdownReviews getBreakDownRatings(@PathVariable(value = "productId") UUID productId) {
+    private BreakdownRating getBreakDownRatings(@PathVariable(value = "productId") UUID productId) {
         return reviewsService.getBreakDownReviewsByRating(productId);
     }
 

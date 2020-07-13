@@ -18,15 +18,6 @@ public class Audits {
     private Timestamp updatedAt;
     private Timestamp deletedAt;
 
-//    @PrePersist
-//    public void onPrePersist(Review object) {
-//        object.setCreatedAt(new Timestamp(new Date().getTime()));
-//    }
-//
-//    @PreUpdate
-//    public void onPreUpdate(Review object) {
-//        object.setUpdatedAt(new Timestamp(new Date().getTime()));
-//    }
 }
 
 

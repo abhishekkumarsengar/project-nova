@@ -38,4 +38,9 @@ public class AggregatedReviews {
 
     @NotNull(message = Constants.NO_OF_REVIEWS + Constants.FIELD_NULL)
     private Integer numberOfReviews;
+
+    public AggregatedReviews(UUID productId, Integer rating) {
+        this.productId = productId;
+        this.rating = rating;
+    }
 }
