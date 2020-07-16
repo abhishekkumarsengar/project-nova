@@ -29,19 +29,19 @@ public class ReviewsServiceImpl implements ReviewsService {
 
     private AggregatedReviewsRepository aggregatedReviewsRepository;
     private HelpfulReviewsRepository helpfulReviewsRepository;
-    private BreakdownReviewRepository breakdownReviewRepository;
+    private RatingRepository ratingRepository;
     private ReviewsRepository reviewsRepository;
 
     @Autowired
     ReviewsServiceImpl(ReviewsRepository reviewsRepository,
                                AggregatedReviewsRepository aggregatedReviewsRepository,
                                HelpfulReviewsRepository helpfulReviewsRepository,
-                               BreakdownReviewRepository breakdownReviewRepository,
+                               RatingRepository ratingRepository,
                                ReviewsRepository reviews2Repository) {
         this.reviewsRepository = reviewsRepository;
         this.aggregatedReviewsRepository = aggregatedReviewsRepository;
         this.helpfulReviewsRepository = helpfulReviewsRepository;
-        this.breakdownReviewRepository = breakdownReviewRepository;
+        this.ratingRepository = ratingRepository;
         this.reviewsRepository = reviews2Repository;
     }
 
@@ -92,22 +92,9 @@ public class ReviewsServiceImpl implements ReviewsService {
 
         Review review = new Review(UUID.randomUUID(), productId);
         BeanUtils.copyProperties(reviewRequest, review);
-        AggregatedReviews aggregatedReviews;
-
-        AggregatedReviews aggregatedReviewsByProductIdAndRating = aggregatedReviewsRepository
-                .getAggregatedReviewsByProductIdAndRating(productId, reviewRequest.getRating());
-
-        if (aggregatedReviewsByProductIdAndRating == null) {
-            aggregatedReviews = new AggregatedReviews(UUID.randomUUID(), productId, reviewRequest.getRating(), 1);
-        } else {
-            aggregatedReviews = new AggregatedReviews(aggregatedReviewsByProductIdAndRating.getRatingId(), productId,
-                    reviewRequest.getRating(), aggregatedReviewsByProductIdAndRating.getNumberOfReviews() + 1);
-        }
-
         try {
-//            aggregatedReviewsRepository.save(aggregatedReviews);
             reviewsRepository.save(review);
-//            updateBreakDownReviews(productId, reviewRequest.getRating());
+            updateRatings(productId, reviewRequest.getRating());
         } catch (RuntimeException exception) {
             logger.error("Error while persisting data. Rolling back data.");
             throw new PersistenceException("Error while persisting data. Rolling back data");
@@ -149,14 +136,15 @@ public class ReviewsServiceImpl implements ReviewsService {
 
     @Override
     public AggregatedReviewsResponse getAggregatedReviewsByRating(UUID productId) {
-        List<Rating> aggregatedReviewsList = aggregatedReviewsRepository.getAggregatedReviewsByProductId(productId);
+        Optional<Rating> aggregatedReview = Optional.ofNullable(aggregatedReviewsRepository
+                .getAggregatedReviewsByProductId(productId));
         double rating = 0;
-        int numberOfReviews = 0;
-        if (!aggregatedReviewsList.isEmpty()) {
-            rating  = aggregatedReviewsList.stream()
-                    .filter(aggregatedReviews -> aggregatedReviews.getRating() > 0).mapToInt(Rating::getRating).average().getAsDouble();
-            numberOfReviews  = aggregatedReviewsList.stream()
-                    .filter(aggregatedReviews -> aggregatedReviews.getNumberOfReviews() > 0).mapToInt(Rating::getNumberOfReviews).sum();
+        Integer numberOfReviews = 0;
+        if (aggregatedReview.isPresent()) {
+            rating = Arrays.stream(new int[]{aggregatedReview.get().getRating_1() + aggregatedReview.get().getRating_2()
+                    + aggregatedReview.get().getRating_3() + aggregatedReview.get().getRating_4()
+                    + aggregatedReview.get().getRating_5()}).average().getAsDouble();
+            numberOfReviews = aggregatedReview.get().getNumberOfReviews();
         }
         return new AggregatedReviewsResponse(rating, numberOfReviews);
     }
@@ -170,33 +158,33 @@ public class ReviewsServiceImpl implements ReviewsService {
         return breakdownRating;
     }
 
-    private void updateBreakDownReviews(UUID productId, Integer rating) {
-        Integer ratingCount = breakdownReviewRepository.getRatingCountByProductId(productId);
+    private void updateRatings(UUID productId, Integer rating) {
+        Integer ratingCount = ratingRepository.getRatingCountByProductId(productId);
         if (ratingCount > 0) {
             switch (rating) {
                 case 1:
-                    breakdownReviewRepository.updateRating_1ByProductId(productId, rating);
+                    ratingRepository.updateRating_1ByProductId(productId, rating);
                     break;
 
                 case 2:
-                    breakdownReviewRepository.updateRating_2ByProductId(productId, rating);
+                    ratingRepository.updateRating_2ByProductId(productId, rating);
                     break;
 
                 case 3:
-                    breakdownReviewRepository.updateRating_3ByProductId(productId, rating);
+                    ratingRepository.updateRating_3ByProductId(productId, rating);
                     break;
 
                 case 4:
-                    breakdownReviewRepository.updateRating_4ByProductId(productId, rating);
+                    ratingRepository.updateRating_4ByProductId(productId, rating);
                     break;
 
                 case 5:
-                    breakdownReviewRepository.updateRating_5ByProductId(productId, rating);
+                    ratingRepository.updateRating_5ByProductId(productId, rating);
                     break;
             }
         } else {
-            BreakdownRating breakdownRating = new BreakdownRating();
-            breakdownReviewRepository.save(breakdownRating.updateBreakDownReviews(productId, rating));
+            Rating reviewRating = new Rating();
+            ratingRepository.save(reviewRating.updateBreakDownReviews(productId, rating));
         }
     }
 

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.LockModeType;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -19,7 +20,7 @@ public interface AggregatedReviewsRepository extends CrudRepository<Rating, UUID
     @Transactional
     @Lock(value = LockModeType.PESSIMISTIC_READ)
     @Query(value = "select rating from Rating rating where rating.productId = :productId")
-    List<Rating> getAggregatedReviewsByProductId(UUID productId);
+    Rating getAggregatedReviewsByProductId(UUID productId);
 
     @Transactional
     @Lock(value = LockModeType.PESSIMISTIC_READ)

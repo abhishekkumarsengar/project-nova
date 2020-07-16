@@ -1,6 +1,5 @@
 package com.project.nova.configuration;
 
-import com.project.nova.configuration.interceptors.ValidationInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -23,17 +22,4 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     CLASSPATH_RESOURCE_LOCATIONS);
         }
     }
-
-    @Bean
-    public ValidationInterceptor validationInterceptor() {
-        return new ValidationInterceptor();
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(validationInterceptor())
-                .addPathPatterns(
-                        "/api/v1/**");
-    }
-
 }

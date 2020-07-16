@@ -44,12 +44,11 @@ CREATE TABLE rating (
                  rating_3 int,
                  rating_4 int,
                  rating_5 int,
-                 rating int,
                  number_of_reviews int
              );
 
-INSERT INTO rating(product_id, rating_1, rating_2, rating_3, rating_4, rating_5, rating, number_of_reviews)
-VALUES ('0b82256b-7533-4513-8358-273510175576', 10, 20, 30, 40, 50, 33, 34);
+INSERT INTO rating(product_id, rating_1, rating_2, rating_3, rating_4, rating_5, number_of_reviews)
+VALUES ('0b82256b-7533-4513-8358-273510175576', 10, 20, 30, 40, 50, 34);
 
 CREATE TABLE aggregated_rating (
                  rating_id uuid,
