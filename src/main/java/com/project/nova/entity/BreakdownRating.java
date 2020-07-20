@@ -41,33 +41,4 @@ public class BreakdownRating {
 
     @Column(name="rating_5", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")
     private Integer rating_5 = 0;
-
-    public BreakdownRating updateBreakDownReviews(UUID productId, Integer rating) {
-         BreakdownRating breakdownRating = new BreakdownRating();
-         breakdownRating.setProductId(productId);
-            switch (rating) {
-                case 1:
-                    breakdownRating.setRating_1(1);
-                    break;
-
-                case 2:
-                    breakdownRating.setRating_2(1);
-                    break;
-
-                case 3:
-                    breakdownRating.setRating_3(1);
-                    break;
-
-                case 4:
-                    breakdownRating.setRating_4(1);
-                    break;
-
-                case 5:
-                    breakdownRating.setRating_5(1);
-                    break;
-            }
-
-            return breakdownRating;
-    }
-
 }

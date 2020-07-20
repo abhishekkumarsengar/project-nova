@@ -12,6 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -36,36 +37,27 @@ public class ReviewsServiceImpl implements ReviewsService {
     ReviewsServiceImpl(ReviewsRepository reviewsRepository,
                                AggregatedReviewsRepository aggregatedReviewsRepository,
                                HelpfulReviewsRepository helpfulReviewsRepository,
-                               RatingRepository ratingRepository,
-                               ReviewsRepository reviews2Repository) {
+                               RatingRepository ratingRepository) {
         this.reviewsRepository = reviewsRepository;
         this.aggregatedReviewsRepository = aggregatedReviewsRepository;
         this.helpfulReviewsRepository = helpfulReviewsRepository;
         this.ratingRepository = ratingRepository;
-        this.reviewsRepository = reviews2Repository;
+        this.reviewsRepository = reviewsRepository;
     }
 
     @Override
-    public ReviewResponse getAllReviews(UUID productId, Integer rating, String helpful, Integer pageNumber, Integer pageSize) {
-        ReviewResponse reviewResponse = new ReviewResponse();
+    public ReviewResponse getAllReviews(UUID productId, Integer rating, String order, Integer pageNumber, Integer pageSize) {
         Page<Review> reviewResponseQueryResult = null;
-
         if (rating == null) {
             try {
-                reviewResponseQueryResult = reviewsRepository.getAllReviewsByProductId(productId, PageRequest.of(pageNumber, pageSize));
+                reviewResponseQueryResult = reviewsRepository.getAllReviewsByProductId(productId, PageRequest.of(pageNumber, pageSize, Sort.by(order).descending()));
             } catch (PessimisticLockException | LockTimeoutException | PersistenceException lockingExceptions) {
                 logger.error("", lockingExceptions);
             }
+        } else {
+            reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize, Sort.by(order).descending()));
         }
-        else {
-            reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize));
-
-        }
-        reviewResponse.setReviews(reviewResponseQueryResult.getContent());
-        reviewResponse.setPageNumber(pageNumber);
-        reviewResponse.setPageSize(pageSize);
-        reviewResponse.setTotalSize((int) reviewResponseQueryResult.getTotalElements());
-        return reviewResponse;
+        return new ReviewResponse(reviewResponseQueryResult.getContent(), pageNumber, pageSize, (int) reviewResponseQueryResult.getTotalElements());
     }
 
     @Override
@@ -74,11 +66,6 @@ public class ReviewsServiceImpl implements ReviewsService {
         return Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
                 .orElseThrow(() -> new NotFoundException("No review found with this id"));
     }
-//
-//    private ReviewResponse getReviewByRating(UUID productId, Integer rating,
-//                                             Integer pageNumber, Integer pageSize) {
-//        return reviews2Repository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize));
-//    }
 
     @Transactional
     @Override
@@ -103,6 +90,7 @@ public class ReviewsServiceImpl implements ReviewsService {
     }
 
 
+    @Transactional
     @Override
     public Review updateReview(UUID productId, UUID reviewId, ReviewRequest reviewRequest, BindingResult bindingResult) {
         Review review = Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
@@ -111,13 +99,17 @@ public class ReviewsServiceImpl implements ReviewsService {
         return reviewsRepository.save(review);
     }
 
+    @Transactional
     @Override
     public void deleteReview(UUID productId, UUID reviewId) {
         Review review = Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
                 .orElseThrow(() -> new NotFoundException("Review not found"));
         review.setDeletedAt(new Timestamp(new Date().getTime()));
+        decrementRatings(productId, review.getRating());
         reviewsRepository.save(review);
     }
+
+
 
     @Transactional
     @Override
@@ -143,7 +135,7 @@ public class ReviewsServiceImpl implements ReviewsService {
         if (aggregatedReview.isPresent()) {
             rating = Arrays.stream(new int[]{aggregatedReview.get().getRating_1() + aggregatedReview.get().getRating_2()
                     + aggregatedReview.get().getRating_3() + aggregatedReview.get().getRating_4()
-                    + aggregatedReview.get().getRating_5()}).average().getAsDouble();
+                    + aggregatedReview.get().getRating_5()}).sum();
             numberOfReviews = aggregatedReview.get().getNumberOfReviews();
         }
         return new AggregatedReviewsResponse(rating, numberOfReviews);
@@ -180,6 +172,36 @@ public class ReviewsServiceImpl implements ReviewsService {
 
                 case 5:
                     ratingRepository.updateRating_5ByProductId(productId, rating);
+                    break;
+            }
+        } else {
+            Rating reviewRating = new Rating();
+            ratingRepository.save(reviewRating.updateBreakDownReviews(productId, rating));
+        }
+    }
+
+    private void decrementRatings(UUID productId, Integer rating) {
+        Integer ratingCount = ratingRepository.getRatingCountByProductId(productId);
+        if (ratingCount > 0) {
+            switch (rating) {
+                case 1:
+                    ratingRepository.deleteRating_1ByProductId(productId, rating);
+                    break;
+
+                case 2:
+                    ratingRepository.deleteRating_2ByProductId(productId, rating);
+                    break;
+
+                case 3:
+                    ratingRepository.deleteRating_3ByProductId(productId, rating);
+                    break;
+
+                case 4:
+                    ratingRepository.deleteRating_4ByProductId(productId, rating);
+                    break;
+
+                case 5:
+                    ratingRepository.deleteRating_5ByProductId(productId, rating);
                     break;
             }
         } else {
