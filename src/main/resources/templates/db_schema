@@ -22,29 +22,14 @@ CREATE TABLE helpful_review (
              );
 
 
-CREATE TABLE aggregated_rating (
-                 product_id uuid,
-                 rating int,
-                 number_of_reviews int
-             );
-
-CREATE TABLE breakdown_rating (
-                 product_id uuid,
-                 rating_1 int,
-                 rating_2 int,
-                 rating_3 int,
-                 rating_4 int,
-                 rating_5 int
-             );
-
 CREATE TABLE rating (
                  product_id uuid,
-                 rating_1 int,
-                 rating_2 int,
-                 rating_3 int,
-                 rating_4 int,
-                 rating_5 int,
-                 number_of_reviews int
+                 rating_1 int NOT NULL CHECK (rating_1 >= 0),
+                 rating_2 int NOT NULL CHECK (rating_2 >= 0),
+                 rating_3 int NOT NULL CHECK (rating_3 >= 0) ,
+                 rating_4 int NOT NULL CHECK (rating_4 >= 0) ,
+                 rating_5 int NOT NULL CHECK (rating_5 >= 0) ,
+                 number_of_reviews int NOT NULL CHECK (number_of_reviews >= 0)
              );
 
 INSERT INTO rating(product_id, rating_1, rating_2, rating_3, rating_4, rating_5, number_of_reviews)

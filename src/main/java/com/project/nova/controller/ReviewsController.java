@@ -27,6 +27,7 @@ public class ReviewsController {
         this.reviewsService = reviewsService;
     }
 
+    // TODO add column for sorting
     @GetMapping("/products/{productId}/reviews")
     @ResponseStatus(HttpStatus.OK)
     private ReviewResponse getAllReviews(@PathVariable(value = "productId") UUID productId,
@@ -34,7 +35,6 @@ public class ReviewsController {
                                          @RequestParam(value = "order", required = false) String order,
                                          @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
                                          @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        // Sorting field - sort, order
         return reviewsService.getAllReviews(productId, rating, order, pageNumber, pageSize);
     }
 
@@ -49,7 +49,7 @@ public class ReviewsController {
     @ResponseStatus(HttpStatus.CREATED)
     private Review createReview(@PathVariable UUID productId,
                                 @Validated @RequestBody ReviewRequest reviewRequest,
-                                BindingResult bindingResult, HttpServletRequest request) throws Exception {
+                                BindingResult bindingResult) throws Exception {
         return reviewsService.createReview(productId, reviewRequest, bindingResult);
     }
 

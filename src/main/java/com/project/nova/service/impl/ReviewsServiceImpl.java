@@ -22,27 +22,23 @@ import javax.persistence.PessimisticLockException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 @Service
 public class ReviewsServiceImpl implements ReviewsService {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ReviewsServiceImpl.class);
 
-    private AggregatedReviewsRepository aggregatedReviewsRepository;
     private HelpfulReviewsRepository helpfulReviewsRepository;
     private RatingRepository ratingRepository;
     private ReviewsRepository reviewsRepository;
 
     @Autowired
-    ReviewsServiceImpl(ReviewsRepository reviewsRepository,
-                               AggregatedReviewsRepository aggregatedReviewsRepository,
-                               HelpfulReviewsRepository helpfulReviewsRepository,
-                               RatingRepository ratingRepository) {
+    ReviewsServiceImpl(ReviewsRepository reviewsRepository, HelpfulReviewsRepository helpfulReviewsRepository,
+                       RatingRepository ratingRepository) {
         this.reviewsRepository = reviewsRepository;
-        this.aggregatedReviewsRepository = aggregatedReviewsRepository;
         this.helpfulReviewsRepository = helpfulReviewsRepository;
         this.ratingRepository = ratingRepository;
-        this.reviewsRepository = reviewsRepository;
     }
 
     @Override
@@ -52,7 +48,8 @@ public class ReviewsServiceImpl implements ReviewsService {
             try {
                 reviewResponseQueryResult = reviewsRepository.getAllReviewsByProductId(productId, PageRequest.of(pageNumber, pageSize, Sort.by(order).descending()));
             } catch (PessimisticLockException | LockTimeoutException | PersistenceException lockingExceptions) {
-                logger.error("", lockingExceptions);
+                logger.error("Error while acquiring lock ", lockingExceptions);
+                throw new PersistenceException("Error while acquiring lock");
             }
         } else {
             reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize, Sort.by(order).descending()));
@@ -74,6 +71,7 @@ public class ReviewsServiceImpl implements ReviewsService {
 
         Integer doesReviewExists = reviewsRepository.checkReviewExists(productId, reviewRequest.getUserId()).get();
         if (doesReviewExists > 0) {
+            logger.error("User has already submitted a review for this product");
             throw new ReviewExistsException("User has already submitted a review for this product");
         }
 
@@ -93,10 +91,18 @@ public class ReviewsServiceImpl implements ReviewsService {
     @Transactional
     @Override
     public Review updateReview(UUID productId, UUID reviewId, ReviewRequest reviewRequest, BindingResult bindingResult) {
+        requestBodyValidation(bindingResult);
         Review review = Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
                 .orElseThrow(() -> new NotFoundException("Review not found"));
-        BeanUtils.copyProperties(reviewRequest, review);
-        return reviewsRepository.save(review);
+        try {
+            updateRatings(productId, reviewRequest.getRating());
+            decrementRatings(productId, review.getRating());
+            BeanUtils.copyProperties(reviewRequest, review);
+            return reviewsRepository.save(review);
+        } catch (RuntimeException exception) {
+            logger.error("Error while persisting data during update operation. Rolling back data" + exception);
+            throw new PersistenceException("Error while persisting data. Rolling back data");
+        }
     }
 
     @Transactional
@@ -110,41 +116,40 @@ public class ReviewsServiceImpl implements ReviewsService {
     }
 
 
-
     @Transactional
     @Override
     public void isReviewHelpFull(UUID productId, UUID reviewId, UUID userId) {
         Integer userMarkedHelpFull = helpfulReviewsRepository.hasUserMarkedHelpFull(productId, reviewId, userId);
 
         if (userMarkedHelpFull > 0) {
+            logger.error("User has already marked this review as helpful");
             throw new ReviewExistsException("User has already marked this review as helpful");
         }
-
         HelpfulReview helpfulReview = new HelpfulReview(userId, productId, reviewId);
-
         helpfulReviewsRepository.save(helpfulReview);
         reviewsRepository.updateHelpfulInReviews(productId, reviewId);
     }
 
+    // TODO add sum product column
     @Override
     public AggregatedReviewsResponse getAggregatedReviewsByRating(UUID productId) {
-        Optional<Rating> aggregatedReview = Optional.ofNullable(aggregatedReviewsRepository
+        Optional<Rating> aggregatedReview = Optional.ofNullable(ratingRepository
                 .getAggregatedReviewsByProductId(productId));
         double rating = 0;
         Integer numberOfReviews = 0;
         if (aggregatedReview.isPresent()) {
-            rating = Arrays.stream(new int[]{aggregatedReview.get().getRating_1() + aggregatedReview.get().getRating_2()
+            rating = DoubleStream.of(aggregatedReview.get().getRating_1() + aggregatedReview.get().getRating_2()
                     + aggregatedReview.get().getRating_3() + aggregatedReview.get().getRating_4()
-                    + aggregatedReview.get().getRating_5()}).sum();
+                    + aggregatedReview.get().getRating_5()).sum();
             numberOfReviews = aggregatedReview.get().getNumberOfReviews();
         }
-        return new AggregatedReviewsResponse(rating, numberOfReviews);
+        return new AggregatedReviewsResponse(rating/numberOfReviews, numberOfReviews);
     }
 
     @Override
     public BreakdownRating getBreakDownReviewsByRating(UUID productId) {
         BreakdownRating breakdownRating = new BreakdownRating();
-        Rating rating = Optional.ofNullable(aggregatedReviewsRepository.getRatingByProductId(productId))
+        Rating rating = Optional.ofNullable(ratingRepository.getRatingByProductId(productId))
                 .orElseThrow(() -> new NotFoundException("No ratings found for this product"));
         BeanUtils.copyProperties(rating, breakdownRating);
         return breakdownRating;
@@ -209,6 +214,11 @@ public class ReviewsServiceImpl implements ReviewsService {
             ratingRepository.save(reviewRating.updateBreakDownReviews(productId, rating));
         }
     }
+
+
+
+
+
 
 
     private void requestBodyValidation(BindingResult bindingResult) {
