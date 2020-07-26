@@ -27,10 +27,12 @@ public class ResponseModifyFilter implements Filter {
                 (HttpServletResponse) response);
 
         chain.doFilter(request, capturingResponseWrapper);
+
         try {
             String apiResponse = capturingResponseWrapper.getCaptureAsString();
-            if (((HttpServletResponse) response).getStatus() == HttpStatus.OK.value() ||
-                    ((HttpServletResponse) response).getStatus() == HttpStatus.CREATED.value()) {
+            if (((((HttpServletResponse) response).getStatus() == HttpStatus.OK.value() ||
+                    ((HttpServletResponse) response).getStatus() == HttpStatus.CREATED.value())) &&
+                    ((HttpServletResponse) response).getContentType().equalsIgnoreCase("application/json")) {
                 EntityResponse entityResponse = new EntityResponse();
                 entityResponse.setData(objectMapper.readValue(apiResponse, Object.class));
                 entityResponse.setStatus(Constants.SUCCESS);

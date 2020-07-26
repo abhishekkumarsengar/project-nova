@@ -42,17 +42,25 @@ public class ReviewsServiceImpl implements ReviewsService {
     }
 
     @Override
-    public ReviewResponse getAllReviews(UUID productId, Integer rating, String order, Integer pageNumber, Integer pageSize) {
+    public ReviewResponse getAllReviews(UUID productId, Integer rating, String sort, String order, Integer pageNumber, Integer pageSize) {
         Page<Review> reviewResponseQueryResult = null;
         if (rating == null) {
             try {
-                reviewResponseQueryResult = reviewsRepository.getAllReviewsByProductId(productId, PageRequest.of(pageNumber, pageSize, Sort.by(order).descending()));
+                if (order.equalsIgnoreCase("desc")) {
+                    reviewResponseQueryResult = reviewsRepository.getAllReviewsByProductId(productId, PageRequest.of(pageNumber, pageSize, Sort.by(sort).descending()));
+                } else {
+                    reviewResponseQueryResult = reviewsRepository.getAllReviewsByProductId(productId, PageRequest.of(pageNumber, pageSize, Sort.by(sort).ascending()));
+                }
             } catch (PessimisticLockException | LockTimeoutException | PersistenceException lockingExceptions) {
                 logger.error("Error while acquiring lock ", lockingExceptions);
                 throw new PersistenceException("Error while acquiring lock");
             }
         } else {
-            reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize, Sort.by(order).descending()));
+            if (order.equalsIgnoreCase("desc")) {
+                reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize, Sort.by(order).descending()));
+            } else {
+                reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize, Sort.by(order).ascending()));
+            }
         }
         return new ReviewResponse(reviewResponseQueryResult.getContent(), pageNumber, pageSize, (int) reviewResponseQueryResult.getTotalElements());
     }

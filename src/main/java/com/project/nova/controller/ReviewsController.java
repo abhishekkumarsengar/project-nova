@@ -7,6 +7,10 @@ import com.project.nova.entity.BreakdownRating;
 import com.project.nova.entity.Rating;
 import com.project.nova.entity.Review;
 import com.project.nova.service.ReviewsService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -27,15 +31,22 @@ public class ReviewsController {
         this.reviewsService = reviewsService;
     }
 
-    // TODO add column for sorting
+    @ApiOperation(value = "Create a policy", notes = "Creates a new policy")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Created"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+            @ApiResponse(code = 400, message = "Array of bad fields")
+    })
+    @ResponseBody
     @GetMapping("/products/{productId}/reviews")
     @ResponseStatus(HttpStatus.OK)
     private ReviewResponse getAllReviews(@PathVariable(value = "productId") UUID productId,
                                          @RequestParam(value = "rating", required = false) Integer rating,
+                                         @RequestParam(value = "sort", required = false) String sort,
                                          @RequestParam(value = "order", required = false) String order,
                                          @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
                                          @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        return reviewsService.getAllReviews(productId, rating, order, pageNumber, pageSize);
+        return reviewsService.getAllReviews(productId, rating, sort, order, pageNumber, pageSize);
     }
 
     @GetMapping("/products/{productId}/reviews/{reviewId}")

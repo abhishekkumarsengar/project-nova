@@ -88,5 +88,8 @@ public interface RatingRepository extends PagingAndSortingRepository<Rating, UUI
             "where rating.productId = ?1")
     void deleteRating_5ByProductId(UUID productId, Integer rating);
 
+    void updateRatingByProductId(UUID productId, Integer rating);
+    void deleteRatingByProductId(UUID productId, Integer rating);
+
 }
 
