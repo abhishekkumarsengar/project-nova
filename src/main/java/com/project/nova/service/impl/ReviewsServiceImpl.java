@@ -34,6 +34,9 @@ public class ReviewsServiceImpl implements ReviewsService {
     private ReviewsRepository reviewsRepository;
 
     @Autowired
+    private RatingRepositoryImpl ratingRepositoryImpl;
+
+    @Autowired
     ReviewsServiceImpl(ReviewsRepository reviewsRepository, HelpfulReviewsRepository helpfulReviewsRepository,
                        RatingRepository ratingRepository) {
         this.reviewsRepository = reviewsRepository;
@@ -166,44 +169,7 @@ public class ReviewsServiceImpl implements ReviewsService {
     private void updateRatings(UUID productId, Integer rating) {
         Rating ratingCount = ratingRepository.getRatingByProductId(productId);
         if (ratingCount != null) {
-            double weightedSum;
-            switch (rating) {
-                case 1:
-                    weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * ratingCount.getRating_4() +
-                            3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + (ratingCount.getRating_1() + 1))
-                            / (ratingCount.getNumberOfReviews() + 1);
-                    ratingRepository.updateRating_1ByProductId(productId, weightedSum);
-                    break;
-
-                case 2:
-                    weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * ratingCount.getRating_4() +
-                            3 * ratingCount.getRating_3() + 2 * (ratingCount.getRating_2() + 1) + ratingCount.getRating_1())
-                            / (ratingCount.getNumberOfReviews() + 1);
-                    ratingRepository.updateRating_2ByProductId(productId, weightedSum);
-                    break;
-
-                case 3:
-                    weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * ratingCount.getRating_4() +
-                            3 * (ratingCount.getRating_3() + 1) + 2 * ratingCount.getRating_2() + ratingCount.getRating_1())
-                            / (ratingCount.getNumberOfReviews() + 1);
-                    ratingRepository.updateRating_3ByProductId(productId, weightedSum);
-                    break;
-
-                case 4:
-                    weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * (ratingCount.getRating_4() + 1) +
-                            3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1())
-                            / (ratingCount.getNumberOfReviews() + 1);
-                    ratingRepository.updateRating_4ByProductId(productId, weightedSum);
-                    break;
-
-                case 5:
-                    weightedSum = (double) (5 * (ratingCount.getRating_5() + 1) + 4 * ratingCount.getRating_4() +
-                            3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1())
-                            / (ratingCount.getNumberOfReviews() + 1);
-                    ratingRepository.updateRating_5ByProductId(productId, weightedSum);
-                    break;
-            }
-
+            ratingRepositoryImpl.updateRatingByProductId(productId, rating, ratingCount);
         } else {
             Rating reviewRating = new Rating();
             ratingRepository.save(reviewRating.updateBreakDownReviews(productId, rating));
