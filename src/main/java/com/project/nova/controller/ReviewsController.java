@@ -31,7 +31,7 @@ public class ReviewsController {
         this.reviewsService = reviewsService;
     }
 
-    @ApiOperation(value = "Create a policy", notes = "Creates a new policy")
+    @ApiOperation(value = "Add reviews for a product", notes = "Add reviews for products")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Created"),
             @ApiResponse(code = 500, message = "Internal server error"),

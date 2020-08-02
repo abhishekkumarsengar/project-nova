@@ -59,13 +59,24 @@ public class ReviewsServiceImpl implements ReviewsService {
                 throw new PersistenceException("Error while acquiring lock");
             }
         } else {
-            if (order.equalsIgnoreCase("desc")) {
-                reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize, Sort.by(order).descending()));
-            } else {
-                reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize, Sort.by(order).ascending()));
-            }
+            getReviewByRatings(productId, rating, sort, order, pageNumber, pageSize);
         }
         return new ReviewResponse(reviewResponseQueryResult.getContent(), pageNumber, pageSize, (int) reviewResponseQueryResult.getTotalElements());
+    }
+
+    private Page<Review> getReviewByRatings(UUID productId, Integer rating, String sort, String order, Integer pageNumber, Integer pageSize) {
+        Page<Review> reviewResponseQueryResult = null;
+        try {
+            if (order.equalsIgnoreCase("desc")) {
+                reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize, Sort.by(sort).descending()));
+            } else {
+                reviewResponseQueryResult = reviewsRepository.getReviewsByRatings(productId, rating, PageRequest.of(pageNumber, pageSize, Sort.by(sort).ascending()));
+            }
+        } catch (PessimisticLockException | LockTimeoutException | PersistenceException lockingExceptions) {
+            logger.error("Error while acquiring lock ", lockingExceptions);
+            throw new PersistenceException("Error while acquiring lock");
+        }
+        return reviewResponseQueryResult;
     }
 
     @Override
