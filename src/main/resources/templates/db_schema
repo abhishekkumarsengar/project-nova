@@ -29,6 +29,7 @@ CREATE TABLE rating (
                  rating_3 int NOT NULL CHECK (rating_3 >= 0) ,
                  rating_4 int NOT NULL CHECK (rating_4 >= 0) ,
                  rating_5 int NOT NULL CHECK (rating_5 >= 0) ,
+                 weighted_sum real,
                  number_of_reviews int NOT NULL CHECK (number_of_reviews >= 0)
              );
 

@@ -41,6 +41,9 @@ public class Rating {
     @Column(name="rating_5", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")
     private Integer rating_5 = 0;
 
+    @Column(name="weighted_sum", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")
+    private Double weightedSum = 0.0;
+
     @NotNull(message = Constants.NO_OF_REVIEWS + Constants.FIELD_NULL)
     private Integer numberOfReviews;
 

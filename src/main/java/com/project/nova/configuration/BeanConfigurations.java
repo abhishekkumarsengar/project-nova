@@ -14,7 +14,6 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
-@EnableWebMvc
 @EnableSwagger2
 public class BeanConfigurations implements WebMvcConfigurer {
 
@@ -24,7 +23,7 @@ public class BeanConfigurations implements WebMvcConfigurer {
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.any())
-                .paths(PathSelectors.any())
+                .paths(PathSelectors.ant("/api/**"))
                 .build();
     }
 
