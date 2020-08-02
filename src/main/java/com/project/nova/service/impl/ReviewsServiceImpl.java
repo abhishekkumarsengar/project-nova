@@ -177,29 +177,9 @@ public class ReviewsServiceImpl implements ReviewsService {
     }
 
     private void decrementRatings(UUID productId, Integer rating) {
-        Integer ratingCount = ratingRepository.getRatingCountByProductId(productId);
-        if (ratingCount > 0) {
-            switch (rating) {
-                case 1:
-                    ratingRepository.deleteRating_1ByProductId(productId, rating);
-                    break;
-
-                case 2:
-                    ratingRepository.deleteRating_2ByProductId(productId, rating);
-                    break;
-
-                case 3:
-                    ratingRepository.deleteRating_3ByProductId(productId, rating);
-                    break;
-
-                case 4:
-                    ratingRepository.deleteRating_4ByProductId(productId, rating);
-                    break;
-
-                case 5:
-                    ratingRepository.deleteRating_5ByProductId(productId, rating);
-                    break;
-            }
+        Rating ratingCount = ratingRepository.getRatingByProductId(productId);
+        if (ratingCount != null) {
+            ratingRepositoryImpl.deleteRatingByProductId(productId, rating, ratingCount);
         } else {
             Rating reviewRating = new Rating();
             ratingRepository.save(reviewRating.updateBreakDownReviews(productId, rating));
