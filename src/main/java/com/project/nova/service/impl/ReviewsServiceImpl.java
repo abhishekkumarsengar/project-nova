@@ -141,20 +141,11 @@ public class ReviewsServiceImpl implements ReviewsService {
         reviewsRepository.updateHelpfulInReviews(productId, reviewId);
     }
 
-    // TODO add sum product column
     @Override
     public AggregatedReviewsResponse getAggregatedReviewsByRating(UUID productId) {
-        Optional<Rating> aggregatedReview = Optional.ofNullable(ratingRepository
-                .getAggregatedReviewsByProductId(productId));
-        double rating = 0;
-        Integer numberOfReviews = 0;
-        if (aggregatedReview.isPresent()) {
-            rating = DoubleStream.of(aggregatedReview.get().getRating_1() + aggregatedReview.get().getRating_2()
-                    + aggregatedReview.get().getRating_3() + aggregatedReview.get().getRating_4()
-                    + aggregatedReview.get().getRating_5()).sum();
-            numberOfReviews = aggregatedReview.get().getNumberOfReviews();
-        }
-        return new AggregatedReviewsResponse(rating/numberOfReviews, numberOfReviews);
+        Rating aggregatedReview = Optional.ofNullable(ratingRepository
+                .getAggregatedReviewsByProductId(productId)).get();
+        return new AggregatedReviewsResponse(aggregatedReview.getWeightedSum(), aggregatedReview.getNumberOfReviews());
     }
 
     @Override
