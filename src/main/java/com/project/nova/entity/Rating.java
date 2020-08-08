@@ -20,26 +20,7 @@ import java.util.UUID;
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Table(name = "rating")
-public class Rating {
-
-    @Id
-    @NotNull(message = Constants.PRODUCT_ID + Constants.FIELD_NULL)
-    private UUID productId;
-
-    @Column(name="rating_1", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")
-    private Integer rating_1 = 0;
-
-    @Column(name="rating_2", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")
-    private Integer rating_2 = 0;
-
-    @Column(name="rating_3", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")
-    private Integer rating_3 = 0;
-
-    @Column(name="rating_4", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")
-    private Integer rating_4 = 0;
-
-    @Column(name="rating_5", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")
-    private Integer rating_5 = 0;
+public class Rating extends BreakdownRating {
 
     @Column(name="weighted_sum", nullable = false, columnDefinition="INT NOT NULL DEFAULT 0")
     private Double weightedSum = 0.0;

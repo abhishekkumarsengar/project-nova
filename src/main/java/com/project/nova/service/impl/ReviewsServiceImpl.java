@@ -22,7 +22,6 @@ import javax.persistence.PessimisticLockException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 @Service
 public class ReviewsServiceImpl implements ReviewsService {
@@ -59,7 +58,7 @@ public class ReviewsServiceImpl implements ReviewsService {
                 throw new PersistenceException("Error while acquiring lock");
             }
         } else {
-            getReviewByRatings(productId, rating, sort, order, pageNumber, pageSize);
+            reviewResponseQueryResult = getReviewByRatings(productId, rating, sort, order, pageNumber, pageSize);
         }
         return new ReviewResponse(reviewResponseQueryResult.getContent(), pageNumber, pageSize, (int) reviewResponseQueryResult.getTotalElements());
     }
@@ -133,8 +132,13 @@ public class ReviewsServiceImpl implements ReviewsService {
         Review review = Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
                 .orElseThrow(() -> new NotFoundException("Review not found"));
         review.setDeletedAt(new Timestamp(new Date().getTime()));
-        decrementRatings(productId, review.getRating());
-        reviewsRepository.save(review);
+        try {
+            decrementRatings(productId, review.getRating());
+            reviewsRepository.save(review);
+        } catch (RuntimeException exception) {
+            logger.error("Error while persisting data during update operation. Rolling back data" + exception);
+            throw new PersistenceException("Error while persisting data. Rolling back data");
+        }
     }
 
 
@@ -148,8 +152,13 @@ public class ReviewsServiceImpl implements ReviewsService {
             throw new ReviewExistsException("User has already marked this review as helpful");
         }
         HelpfulReview helpfulReview = new HelpfulReview(userId, productId, reviewId);
-        helpfulReviewsRepository.save(helpfulReview);
-        reviewsRepository.updateHelpfulInReviews(productId, reviewId);
+        try {
+            helpfulReviewsRepository.save(helpfulReview);
+            reviewsRepository.updateHelpfulInReviews(productId, reviewId);
+        } catch (RuntimeException exception) {
+            logger.error("Error while persisting data during update operation. Rolling back data" + exception);
+            throw new PersistenceException("Error while persisting data. Rolling back data");
+        }
     }
 
     @Override
