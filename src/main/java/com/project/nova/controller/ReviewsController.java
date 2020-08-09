@@ -31,9 +31,9 @@ public class ReviewsController {
         this.reviewsService = reviewsService;
     }
 
-    @ApiOperation(value = "Add reviews for a product", notes = "Add reviews for products")
+    @ApiOperation(value = "Get all review for a product", notes = "Get all review for a product")
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Created"),
+            @ApiResponse(code = 200, message = "success"),
             @ApiResponse(code = 500, message = "Internal server error"),
             @ApiResponse(code = 400, message = "Array of bad fields")
     })
@@ -49,6 +49,12 @@ public class ReviewsController {
         return reviewsService.getAllReviews(productId, rating, sort, order, pageNumber, pageSize);
     }
 
+    @ApiOperation(value = "Add single review for a product by review Id", notes = "Add review for a product by review Id")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "success"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+            @ApiResponse(code = 400, message = "Array of bad fields")
+    })
     @GetMapping("/products/{productId}/reviews/{reviewId}")
     @ResponseStatus(HttpStatus.OK)
     private Review getOneReview(@PathVariable(value = "productId") UUID productId,
@@ -56,6 +62,14 @@ public class ReviewsController {
         return reviewsService.getOneReview(productId, reviewId);
     }
 
+
+    @ApiOperation(value = "Create review for a product", notes = "Add reviews for products")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "success"),
+            @ApiResponse(code = 201, message = "Created"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+            @ApiResponse(code = 400, message = "Array of bad fields")
+    })
     @PostMapping("/products/{productId}/reviews")
     @ResponseStatus(HttpStatus.CREATED)
     private Review createReview(@PathVariable UUID productId,
