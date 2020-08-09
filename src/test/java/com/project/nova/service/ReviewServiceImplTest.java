@@ -276,6 +276,71 @@ public class ReviewServiceImplTest {
         }
 
         @Test
+        @DisplayName("Test update review else part with no previous rating as 1")
+        void testUpdateReviewWithRatingElse1() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(1);
+            reviewRequest.setRating(1);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
+            doReturn(review).when(reviewsRepository).save(any());
+            Review review = reviewsService.updateReview(UUID.randomUUID(), UUID.randomUUID(), reviewRequest, bindingResult);
+            Assertions.assertEquals(Optional.of(1), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
+        @DisplayName("Test update review else part with no previous rating as 5")
+        void testUpdateReviewWithRatingElse5() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(5);
+            reviewRequest.setRating(5);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
+            doReturn(review).when(reviewsRepository).save(any());
+            Review review = reviewsService.updateReview(UUID.randomUUID(), UUID.randomUUID(), reviewRequest, bindingResult);
+            Assertions.assertEquals(Optional.of(5), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
+        @DisplayName("Test update review else part with no previous rating as 2")
+        void testUpdateReviewWithRatingElse2() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(2);
+            reviewRequest.setRating(2);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
+            doReturn(review).when(reviewsRepository).save(any());
+            Review review = reviewsService.updateReview(UUID.randomUUID(), UUID.randomUUID(), reviewRequest, bindingResult);
+            Assertions.assertEquals(Optional.of(2), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
+        @DisplayName("Test update review else part with no previous rating as 3")
+        void testUpdateReviewWithRatingElse3() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(3);
+            reviewRequest.setRating(3);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
+            doReturn(review).when(reviewsRepository).save(any());
+            Review review = reviewsService.updateReview(UUID.randomUUID(), UUID.randomUUID(), reviewRequest, bindingResult);
+            Assertions.assertEquals(Optional.of(3), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
+        @DisplayName("Test update review else part with no previous rating as 5")
+        void testUpdateReviewWithRatingElse4() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(4);
+            reviewRequest.setRating(4);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
+            doReturn(review).when(reviewsRepository).save(any());
+            Review review = reviewsService.updateReview(UUID.randomUUID(), UUID.randomUUID(), reviewRequest, bindingResult);
+            Assertions.assertEquals(Optional.of(4), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
         @DisplayName("Test update review Not found exception")
         void testUpdateReviewWithNotFoundException() throws Exception {
             BindingResult bindingResult = mock(BindingResult.class);
@@ -354,6 +419,81 @@ public class ReviewServiceImplTest {
             reviewRequest.setRating(5);
             doReturn(review).when(reviewsRepository).getReview(any(), any());
             doReturn(rating).when(ratingRepository).getRatingByProductId(any());
+            doNothing().when(ratingRepositoryImpl).deleteRatingByProductId(any(), any(), any());
+            doReturn(review).when(reviewsRepository).save(any());
+
+            reviewsService.deleteReview(UUID.randomUUID(), UUID.randomUUID());
+            Assertions.assertEquals(Optional.of(5), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
+        @DisplayName("Test update review no previous rating 1")
+        void testDeleteReviewWithRatingElseRating1() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(1);
+            reviewRequest.setRating(1);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
+            doNothing().when(ratingRepositoryImpl).deleteRatingByProductId(any(), any(), any());
+            doReturn(review).when(reviewsRepository).save(any());
+
+            reviewsService.deleteReview(UUID.randomUUID(), UUID.randomUUID());
+            Assertions.assertEquals(Optional.of(1), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
+        @DisplayName("Test update review no previous rating 2")
+        void testDeleteReviewWithRatingElseRating2() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(2);
+            reviewRequest.setRating(2);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
+            doNothing().when(ratingRepositoryImpl).deleteRatingByProductId(any(), any(), any());
+            doReturn(review).when(reviewsRepository).save(any());
+
+            reviewsService.deleteReview(UUID.randomUUID(), UUID.randomUUID());
+            Assertions.assertEquals(Optional.of(2), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
+        @DisplayName("Test update review no previous rating 3")
+        void testDeleteReviewWithRatingElseRating3() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(3);
+            reviewRequest.setRating(3);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
+            doNothing().when(ratingRepositoryImpl).deleteRatingByProductId(any(), any(), any());
+            doReturn(review).when(reviewsRepository).save(any());
+
+            reviewsService.deleteReview(UUID.randomUUID(), UUID.randomUUID());
+            Assertions.assertEquals(Optional.of(3), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
+        @DisplayName("Test update review no previous rating 4")
+        void testDeleteReviewWithRatingElseRating4() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(4);
+            reviewRequest.setRating(4);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
+            doNothing().when(ratingRepositoryImpl).deleteRatingByProductId(any(), any(), any());
+            doReturn(review).when(reviewsRepository).save(any());
+
+            reviewsService.deleteReview(UUID.randomUUID(), UUID.randomUUID());
+            Assertions.assertEquals(Optional.of(4), Optional.ofNullable(review.getRating()), "get one review should return 1 review");
+        }
+
+        @Test
+        @DisplayName("Test update review no previous rating 5")
+        void testDeleteReviewWithRatingElseRating5() throws Exception {
+            BindingResult bindingResult = mock(BindingResult.class);
+            review.setRating(5);
+            reviewRequest.setRating(5);
+            doReturn(review).when(reviewsRepository).getReview(any(), any());
+            doReturn(null).when(ratingRepository).getRatingByProductId(any());
             doNothing().when(ratingRepositoryImpl).deleteRatingByProductId(any(), any(), any());
             doReturn(review).when(reviewsRepository).save(any());
 

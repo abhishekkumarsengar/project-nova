@@ -42,8 +42,8 @@ public class ReviewsController {
     @ResponseStatus(HttpStatus.OK)
     private ReviewResponse getAllReviews(@PathVariable(value = "productId") UUID productId,
                                          @RequestParam(value = "rating", required = false) Integer rating,
-                                         @RequestParam(value = "sort", required = false) String sort,
-                                         @RequestParam(value = "order", required = false) String order,
+                                         @RequestParam(value = "sort", required = true) String sort,
+                                         @RequestParam(value = "order", required = true) String order,
                                          @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
                                          @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
         return reviewsService.getAllReviews(productId, rating, sort, order, pageNumber, pageSize);
