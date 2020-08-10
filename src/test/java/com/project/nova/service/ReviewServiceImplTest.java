@@ -7,14 +7,13 @@ import com.project.nova.entity.BreakdownRating;
 import com.project.nova.entity.HelpfulReview;
 import com.project.nova.entity.Rating;
 import com.project.nova.entity.Review;
-import com.project.nova.exceptions.NotFoundException;
-import com.project.nova.exceptions.PersistenceException;
-import com.project.nova.exceptions.ReviewExistsException;
+import com.project.nova.exceptions.*;
 import com.project.nova.repository.HelpfulReviewsRepository;
 import com.project.nova.repository.RatingRepository;
 import com.project.nova.repository.RatingRepositoryImpl;
 import com.project.nova.repository.ReviewsRepository;
 import org.junit.jupiter.api.*;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 
 import javax.persistence.PessimisticLockException;
 import java.util.ArrayList;
@@ -46,6 +46,9 @@ public class ReviewServiceImplTest {
 
     @MockBean
     private RatingRepositoryImpl ratingRepositoryImpl;
+
+    @MockBean
+    private BindingResult bindingResult;
 
     @MockBean
     private HelpfulReviewsRepository helpfulReviewsRepository;
@@ -590,6 +593,65 @@ public class ReviewServiceImplTest {
             Assertions.assertThrows(NotFoundException.class, ()->{
                 doThrow(NotFoundException.class).when(ratingRepository).getRatingByProductId(any());
                 reviewsService.getBreakDownReviewsByRating(UUID.randomUUID());
+            });
+        }
+    }
+
+    @Nested
+    @DisplayName("Testing scenarios of binding result for request body")
+    class TestBindingResult {
+
+        @Test
+        @DisplayName("Test Remove Duplicate Field Error")
+        void testBadRequestBindingException() throws Exception {
+
+            Assertions.assertThrows(BadRequestBindingException.class, ()->{
+                FieldError fieldError = new FieldError("object", "headline", "limit exceeded");
+                List<FieldError> fieldErrorList = new ArrayList<>();
+                fieldErrorList.add(fieldError);
+                doReturn(true).when(bindingResult).hasFieldErrors();
+                doReturn(fieldErrorList).when(bindingResult).getFieldErrors();
+                reviewsService.createReview(UUID.randomUUID(), reviewRequest, bindingResult);
+            });
+        }
+
+        @Test
+        @DisplayName("Test Remove Duplicate Field Error with message Required")
+        void testBadRequestBindingExceptionRequiredMessage() throws Exception {
+
+            Assertions.assertThrows(BadRequestBindingException.class, ()->{
+                FieldError fieldError = new FieldError("object", "headline", "Required");
+                List<FieldError> fieldErrorList = new ArrayList<>();
+                fieldErrorList.add(fieldError);
+                doReturn(true).when(bindingResult).hasFieldErrors();
+                doReturn(fieldErrorList).when(bindingResult).getFieldErrors();
+                reviewsService.createReview(UUID.randomUUID(), reviewRequest, bindingResult);
+            });
+        }
+
+        @Test
+        @DisplayName("Test Remove Duplicate Field Error with message is invalid")
+        void testBadRequestBindingExceptionInvalidMessage() throws Exception {
+
+            Assertions.assertThrows(BadRequestBindingException.class, ()->{
+                FieldError fieldError = new FieldError("object", "headline", " is invalid");
+                List<FieldError> fieldErrorList = new ArrayList<>();
+                fieldErrorList.add(fieldError);
+                doReturn(true).when(bindingResult).hasFieldErrors();
+                doReturn(fieldErrorList).when(bindingResult).getFieldErrors();
+                reviewsService.createReview(UUID.randomUUID(), reviewRequest, bindingResult);
+            });
+        }
+
+        @Test
+        @DisplayName("Test UnProcessableEntitiesException")
+        void testUnProcessableEntitiesException() throws Exception {
+
+            Assertions.assertThrows(UnProcessableEntitiesException.class, ()->{
+                List<FieldError> fieldErrorList = new ArrayList<>();
+                doReturn(true).when(bindingResult).hasFieldErrors();
+                doReturn(fieldErrorList).when(bindingResult).getFieldErrors();
+                reviewsService.createReview(UUID.randomUUID(), reviewRequest, bindingResult);
             });
         }
     }

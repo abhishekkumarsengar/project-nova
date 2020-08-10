@@ -32,11 +32,18 @@ public class AggregatedReviewsTest {
     }
 
     @Test
+    public void testParameterizedConstructor() throws JsonProcessingException {
+        String actual = "{\"ratingId\":null,\"productId\":\"52ff0c61-fce2-43e0-b69d-096709af5bd9\",\"rating\":1,\"numberOfReviews\":null}";
+        AggregatedReviews aggregatedReviews = new AggregatedReviews(UUID.fromString("52ff0c61-fce2-43e0-b69d-096709af5bd9"), 1);
+        String expected = objectMapper.writeValueAsString(aggregatedReviews);
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testNoArgsConstructor() throws JsonProcessingException {
         String actual = "{\"ratingId\":null,\"productId\":null,\"rating\":null,\"numberOfReviews\":null}";
         AggregatedReviews aggregatedReviews = new AggregatedReviews();
         String expected = objectMapper.writeValueAsString(aggregatedReviews);
-        System.out.println(expected);
         assertEquals(expected, actual);
     }
 
@@ -49,7 +56,6 @@ public class AggregatedReviewsTest {
         aggregatedReviews.setProductId(UUID.fromString("52ff0c61-fce2-43e0-b69d-096709af5bd9"));
         aggregatedReviews.setRatingId(UUID.fromString("52ff0c61-fce2-43e0-b69d-096709af5bd9"));
         String expected = objectMapper.writeValueAsString(aggregatedReviews);
-        System.out.println(expected);
         assertEquals(expected, actual);
     }
 }

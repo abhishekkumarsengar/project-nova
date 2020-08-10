@@ -212,7 +212,7 @@ public class ReviewsServiceImpl implements ReviewsService {
                 }
             }
             if (badRequestExceptionExists) {
-                throw new BadRequestException("adfa");
+                throw new BadRequestBindingException(removeDuplicateFieldError(resolveBadRequestExceptionList(bindingResult)));
             } else {
                 throw new UnProcessableEntitiesException(removeDuplicateFieldError(resolveUnProcessableEntitiesExceptionList(bindingResult)));
             }
@@ -245,10 +245,21 @@ public class ReviewsServiceImpl implements ReviewsService {
         return validationErrorList;
     }
 
+    public List<ValidationError> resolveBadRequestExceptionList(BindingResult result) {
+        List<ValidationError> validationErrorList = new ArrayList<>();
+        List<FieldError> errorList = new ArrayList<>();
+        for (FieldError error : result.getFieldErrors()) {
+            if (error.getRejectedValue() == null) {
+                errorList.add(error);
+            }
+        }
+        validationErrorList = getValidationErrors(errorList);
+        return validationErrorList;
+    }
+
     public List<ValidationError> getValidationErrors(List<FieldError> errorList) {
         return errorList.stream().map((FieldError error) -> {
             if (Constants.REQUIRED.equalsIgnoreCase(error.getDefaultMessage())) {
-
                 logger.info(Constants.IS_REQUIRED);
                 return new ValidationError(error.getField(),
                         error.getField() + Constants.IS_REQUIRED);
