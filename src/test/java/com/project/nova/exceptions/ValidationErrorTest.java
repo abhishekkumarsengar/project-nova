@@ -11,10 +11,10 @@ public class ValidationErrorTest {
 
     @Test
     public void responseMessageAllArgsTest() throws Exception {
-        ValidationError validationError = new ValidationError("success", "success");
+        ValidationError validationError = new ValidationError("success","code", "success");
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(validationError);
-        assertEquals("{\"field\":\"success\",\"message\":\"success\"}", testString);
+        assertEquals("{\"field\":\"success\",\"code\":\"code\",\"message\":\"success\"}", testString);
     }
 
     @Test
@@ -34,10 +34,11 @@ public class ValidationErrorTest {
     public void responseMessageSetters() throws Exception {
         ValidationError validationError = new ValidationError();
         validationError.setMessage("success");
+        validationError.setCode("success");
         validationError.setField("success");
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(validationError);
 
-        assertEquals("{\"field\":\"success\",\"message\":\"success\"}", testString);
+        assertEquals("{\"field\":\"success\",\"code\":\"success\",\"message\":\"success\"}", testString);
     }
 }

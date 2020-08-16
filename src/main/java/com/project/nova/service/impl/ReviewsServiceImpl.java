@@ -7,7 +7,6 @@ import com.project.nova.entity.*;
 import com.project.nova.exceptions.*;
 import com.project.nova.repository.*;
 import com.project.nova.service.ReviewsService;
-import com.project.nova.utils.Constants;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,13 +14,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import javax.persistence.LockTimeoutException;
 import javax.persistence.PessimisticLockException;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class ReviewsServiceImpl implements ReviewsService {
@@ -87,9 +83,7 @@ public class ReviewsServiceImpl implements ReviewsService {
 
     @Transactional
     @Override
-    public Review createReview(UUID productId, ReviewRequest reviewRequest, BindingResult bindingResult) throws Exception {
-        requestBodyValidation(bindingResult);
-
+    public Review createReview(UUID productId, ReviewRequest reviewRequest) throws Exception {
         Integer doesReviewExists = reviewsRepository.checkReviewExists(productId, reviewRequest.getUserId()).get();
         if (doesReviewExists > 0) {
             logger.error("User has already submitted a review for this product");
@@ -111,8 +105,7 @@ public class ReviewsServiceImpl implements ReviewsService {
 
     @Transactional
     @Override
-    public Review updateReview(UUID productId, UUID reviewId, ReviewRequest reviewRequest, BindingResult bindingResult) {
-        requestBodyValidation(bindingResult);
+    public Review updateReview(UUID productId, UUID reviewId, ReviewRequest reviewRequest) {
         Review review = Optional.ofNullable(reviewsRepository.getReview(productId, reviewId))
                 .orElseThrow(() -> new NotFoundException("Review not found"));
         try {
@@ -196,83 +189,4 @@ public class ReviewsServiceImpl implements ReviewsService {
             ratingRepository.save(reviewRating.updateBreakDownReviews(productId, rating));
         }
     }
-
-
-
-
-
-
-
-    private void requestBodyValidation(BindingResult bindingResult) {
-        if (bindingResult.hasFieldErrors()) {
-            Boolean badRequestExceptionExists = false;
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                if (error.getRejectedValue() == null) {
-                    badRequestExceptionExists = true;
-                }
-            }
-            if (badRequestExceptionExists) {
-                throw new BadRequestBindingException(removeDuplicateFieldError(resolveBadRequestExceptionList(bindingResult)));
-            } else {
-                throw new UnProcessableEntitiesException(removeDuplicateFieldError(resolveUnProcessableEntitiesExceptionList(bindingResult)));
-            }
-        }
-    }
-
-    public List<ValidationError> removeDuplicateFieldError(List<ValidationError> errors) {
-        Map<String, ValidationError> errorMap = new HashMap<>();
-        for (ValidationError error : errors) {
-            if (!errorMap.containsKey(error.getField())) {
-                errorMap.put(error.getField(), error);
-            }
-        }
-        errors.clear();
-        errors.addAll(errorMap.values());
-        return errors;
-    }
-
-
-    public List<ValidationError> resolveUnProcessableEntitiesExceptionList(BindingResult result) {
-        List<ValidationError> validationErrorList = new ArrayList<>();
-        List<FieldError> errorList = new ArrayList<>();
-        for (FieldError error : result.getFieldErrors()) {
-            logger.error("error.getRejected() value: " + error.getRejectedValue().toString());
-            if (error.getRejectedValue().toString().trim().isEmpty() || error.getRejectedValue().toString().equals("") || error.getRejectedValue().toString().equals("[]") || !error.getDefaultMessage().trim().isEmpty()) {
-                errorList.add(error);
-            }
-        }
-        validationErrorList = getValidationErrors(errorList);
-        return validationErrorList;
-    }
-
-    public List<ValidationError> resolveBadRequestExceptionList(BindingResult result) {
-        List<ValidationError> validationErrorList = new ArrayList<>();
-        List<FieldError> errorList = new ArrayList<>();
-        for (FieldError error : result.getFieldErrors()) {
-            if (error.getRejectedValue() == null) {
-                errorList.add(error);
-            }
-        }
-        validationErrorList = getValidationErrors(errorList);
-        return validationErrorList;
-    }
-
-    public List<ValidationError> getValidationErrors(List<FieldError> errorList) {
-        return errorList.stream().map((FieldError error) -> {
-            if (Constants.REQUIRED.equalsIgnoreCase(error.getDefaultMessage())) {
-                logger.info(Constants.IS_REQUIRED);
-                return new ValidationError(error.getField(),
-                        error.getField() + Constants.IS_REQUIRED);
-            } else if (Constants.FIELD_INVALID.equalsIgnoreCase(error.getDefaultMessage())) {
-
-                logger.info(Constants.FIELD_INVALID);
-                return new ValidationError(error.getField(), Constants.FIELD_INVALID);
-            } else {
-                return new ValidationError(error.getField(),
-                        error.getDefaultMessage());
-            }
-        }).collect(Collectors.toList());
-    }
-
-
 }

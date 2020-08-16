@@ -28,7 +28,7 @@ public class BadRequestBindingExceptionTest {
         BadRequestBindingException badRequestBindingException = new BadRequestBindingException(validationErrors);
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(badRequestBindingException.getErrors());
-        assertEquals("[{\"field\":\"error\",\"message\":\"error\"}]", testString);
+        assertEquals("[{\"field\":\"error\",\"code\":null,\"message\":\"error\"}]", testString);
     }
 
     @Test
@@ -52,6 +52,6 @@ public class BadRequestBindingExceptionTest {
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(badRequestBindingException.getErrors());
 
-        assertEquals("[{\"field\":\"error\",\"message\":\"error\"}]", testString);
+        assertEquals("[{\"field\":\"error\",\"code\":null,\"message\":\"error\"}]", testString);
     }
 }

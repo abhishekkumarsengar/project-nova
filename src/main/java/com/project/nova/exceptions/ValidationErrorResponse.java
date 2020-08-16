@@ -28,7 +28,6 @@ import org.springframework.validation.ObjectError;
 @NoArgsConstructor
 @JsonIgnoreProperties("message")
 public class ValidationErrorResponse {
-    private Integer code;
     private String status;
     private List<ValidationError> errors;
 }

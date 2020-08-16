@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 public class ValidationErrorResponseTest {
-    ValidationError validationError = new ValidationError("success", "success");
+    ValidationError validationError = new ValidationError("success", "code", "success");
     List<ValidationError> validationErrors = new ArrayList<>();
 
     @BeforeEach
@@ -21,10 +21,10 @@ public class ValidationErrorResponseTest {
 
     @Test
     public void responseMessageAllArgsTest() throws Exception {
-        ValidationErrorResponse validationErrorResponse = new ValidationErrorResponse(200, "success", validationErrors);
+        ValidationErrorResponse validationErrorResponse = new ValidationErrorResponse("success", validationErrors);
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(validationErrorResponse);
-        assertEquals("{\"code\":200,\"status\":\"success\",\"errors\":[{\"field\":\"success\",\"message\":\"success\"}]}", testString);
+        assertEquals("{\"status\":\"success\",\"errors\":[{\"field\":\"success\",\"code\":\"code\",\"message\":\"success\"}]}", testString);
     }
 
     @Test
@@ -32,7 +32,7 @@ public class ValidationErrorResponseTest {
         ValidationErrorResponse validationErrorResponse = new ValidationErrorResponse();
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(validationErrorResponse);
-        assertEquals("{\"code\":null,\"status\":null,\"errors\":null}", testString);
+        assertEquals("{\"status\":null,\"errors\":null}", testString);
     }
 
     /**
@@ -44,11 +44,10 @@ public class ValidationErrorResponseTest {
     public void responseMessageSetters() throws Exception {
         ValidationErrorResponse validationErrorResponse = new ValidationErrorResponse();
         validationErrorResponse.setStatus("success");
-        validationErrorResponse.setCode(200);
         validationErrorResponse.setErrors(validationErrors);
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(validationErrorResponse);
 
-        assertEquals("{\"code\":200,\"status\":\"success\",\"errors\":[{\"field\":\"success\",\"message\":\"success\"}]}", testString);
+        assertEquals("{\"status\":\"success\",\"errors\":[{\"field\":\"success\",\"code\":\"code\",\"message\":\"success\"}]}", testString);
     }
 }

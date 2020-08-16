@@ -28,7 +28,7 @@ public class UnProcessableEntityExceptionTest {
         UnProcessableEntitiesException unProcessableEntitiesException = new UnProcessableEntitiesException(validationErrors);
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(unProcessableEntitiesException.getErrors());
-        assertEquals("[{\"field\":\"error\",\"message\":\"error\"}]", testString);
+        assertEquals("[{\"field\":\"error\",\"code\":null,\"message\":\"error\"}]", testString);
     }
 
     @Test
@@ -52,6 +52,6 @@ public class UnProcessableEntityExceptionTest {
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(unProcessableEntitiesException.getErrors());
 
-        assertEquals("[{\"field\":\"error\",\"message\":\"error\"}]", testString);
+        assertEquals("[{\"field\":\"error\",\"code\":null,\"message\":\"error\"}]", testString);
     }
 }

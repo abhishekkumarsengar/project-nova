@@ -1,13 +1,12 @@
 package com.project.nova.controller;
 
+import com.project.nova.configuration.interceptors.ReviewValidator;
 import com.project.nova.dto.AggregatedReviewsResponse;
 import com.project.nova.dto.ReviewRequest;
 import com.project.nova.dto.ReviewResponse;
 import com.project.nova.entity.BreakdownRating;
-import com.project.nova.entity.Rating;
 import com.project.nova.entity.Review;
 import com.project.nova.service.ReviewsService;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -15,9 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.util.UUID;
 
 @RestController
@@ -26,9 +26,17 @@ public class ReviewsController {
 
     private ReviewsService reviewsService;
 
+    private ReviewValidator reviewValidator;
+
     @Autowired
-    private ReviewsController(ReviewsService reviewsService) {
+    private ReviewsController(ReviewsService reviewsService, ReviewValidator reviewValidator) {
         this.reviewsService = reviewsService;
+        this.reviewValidator = reviewValidator;
+    }
+
+    @InitBinder("reviewRequest")
+    public void setupBinder(WebDataBinder binder) {
+        binder.addValidators(reviewValidator);
     }
 
     @ApiOperation(value = "Get all review for a product", notes = "Get all review for a product")
@@ -73,17 +81,16 @@ public class ReviewsController {
     @PostMapping("/products/{productId}/reviews")
     @ResponseStatus(HttpStatus.CREATED)
     private Review createReview(@PathVariable UUID productId,
-                                @Validated @RequestBody ReviewRequest reviewRequest,
-                                BindingResult bindingResult) throws Exception {
-        return reviewsService.createReview(productId, reviewRequest, bindingResult);
+                                @Valid @RequestBody ReviewRequest reviewRequest) throws Exception {
+        return reviewsService.createReview(productId, reviewRequest);
     }
 
     @PutMapping("/products/{productId}/reviews/{reviewId}")
     @ResponseStatus(HttpStatus.OK)
     private Review updateReview(@PathVariable(value = "productId") UUID productId,
                                 @PathVariable(value = "reviewId") UUID reviewId,
-                                @Validated @RequestBody ReviewRequest reviewRequest, BindingResult bindingResult) {
-        return reviewsService.updateReview(productId, reviewId, reviewRequest, bindingResult);
+                                @Valid @RequestBody ReviewRequest reviewRequest) {
+        return reviewsService.updateReview(productId, reviewId, reviewRequest);
     }
 
     @DeleteMapping("/products/{productId}/reviews/{reviewId}")
