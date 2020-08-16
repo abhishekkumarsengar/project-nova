@@ -158,7 +158,8 @@ public class ReviewsServiceImpl implements ReviewsService {
     public AggregatedReviewsResponse getAggregatedReviewsByRating(UUID productId) {
         Rating aggregatedReview = Optional.ofNullable(ratingRepository
                 .getAggregatedReviewsByProductId(productId)).get();
-        return new AggregatedReviewsResponse(aggregatedReview.getWeightedSum(), aggregatedReview.getNumberOfReviews());
+        return new AggregatedReviewsResponse(aggregatedReview.getWeightedSum()/aggregatedReview.getNumberOfReviews(),
+                aggregatedReview.getNumberOfReviews());
     }
 
     @Override

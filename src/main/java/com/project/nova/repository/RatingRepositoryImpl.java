@@ -25,36 +25,31 @@ public class RatingRepositoryImpl {
         switch (rating) {
                 case 1:
                     weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * ratingCount.getRating_4() +
-                            3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + (ratingCount.getRating_1() + 1))
-                            / (ratingCount.getNumberOfReviews() + 1);
+                            3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + (ratingCount.getRating_1() + 1));
                     ratingValue = ratingCount.getRating_1() + 1;
                     break;
 
                 case 2:
                     weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * ratingCount.getRating_4() +
-                            3 * ratingCount.getRating_3() + 2 * (ratingCount.getRating_2() + 1) + ratingCount.getRating_1())
-                            / (ratingCount.getNumberOfReviews() + 1);
+                            3 * ratingCount.getRating_3() + 2 * (ratingCount.getRating_2() + 1) + ratingCount.getRating_1());
                     ratingValue = ratingCount.getRating_2() + 1;
                     break;
 
                 case 3:
                     weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * ratingCount.getRating_4() +
-                            3 * (ratingCount.getRating_3() + 1) + 2 * ratingCount.getRating_2() + ratingCount.getRating_1())
-                            / (ratingCount.getNumberOfReviews() + 1);
+                            3 * (ratingCount.getRating_3() + 1) + 2 * ratingCount.getRating_2() + ratingCount.getRating_1());
                     ratingValue = ratingCount.getRating_3() + 1;
                     break;
 
                 case 4:
                     weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * (ratingCount.getRating_4() + 1) +
-                            3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1())
-                            / (ratingCount.getNumberOfReviews() + 1);
+                            3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1());
                     ratingValue = ratingCount.getRating_4() + 1;
                     break;
 
                 case 5:
                     weightedSum = (double) (5 * (ratingCount.getRating_5() + 1) + 4 * ratingCount.getRating_4() +
-                            3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1())
-                            / (ratingCount.getNumberOfReviews() + 1);
+                            3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1());
                     ratingValue = ratingCount.getRating_5() + 1;
                     break;
             }
@@ -75,36 +70,31 @@ public class RatingRepositoryImpl {
         switch (rating) {
             case 1:
                 weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * ratingCount.getRating_4() +
-                        3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + (ratingCount.getRating_1() - 1))
-                        / (ratingCount.getNumberOfReviews() - 1);
+                        3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + (ratingCount.getRating_1() - 1));
                 ratingValue = ratingCount.getRating_1() - 1;
                 break;
 
             case 2:
                 weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * ratingCount.getRating_4() +
-                        3 * ratingCount.getRating_3() + 2 * (ratingCount.getRating_2() - 1) + ratingCount.getRating_1())
-                        / (ratingCount.getNumberOfReviews() - 1);
+                        3 * ratingCount.getRating_3() + 2 * (ratingCount.getRating_2() - 1) + ratingCount.getRating_1());
                 ratingValue = ratingCount.getRating_2() - 1;
                 break;
 
             case 3:
                 weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * ratingCount.getRating_4() +
-                        3 * (ratingCount.getRating_3() - 1) + 2 * ratingCount.getRating_2() + ratingCount.getRating_1())
-                        / (ratingCount.getNumberOfReviews() - 1);
+                        3 * (ratingCount.getRating_3() - 1) + 2 * ratingCount.getRating_2() + ratingCount.getRating_1());
                 ratingValue = ratingCount.getRating_3() - 1;
                 break;
 
             case 4:
                 weightedSum = (double) (5 * ratingCount.getRating_5() + 4 * (ratingCount.getRating_4() - 1) +
-                        3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1())
-                        / (ratingCount.getNumberOfReviews() - 1);
+                        3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1());
                 ratingValue = ratingCount.getRating_4() - 1;
                 break;
 
             case 5:
                 weightedSum = (double) (5 * (ratingCount.getRating_5() - 1) + 4 * ratingCount.getRating_4() +
-                        3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1())
-                        / (ratingCount.getNumberOfReviews() - 1);
+                        3 * ratingCount.getRating_3() + 2 * ratingCount.getRating_2() + ratingCount.getRating_1());
                 ratingValue = ratingCount.getRating_5() - 1;
                 break;
         }
