@@ -81,7 +81,7 @@ public class ReviewsController {
     @PostMapping("/products/{productId}/reviews")
     @ResponseStatus(HttpStatus.CREATED)
     private Review createReview(@PathVariable UUID productId,
-                                @Valid @RequestBody ReviewRequest reviewRequest) throws Exception {
+                                @Valid @RequestBody ReviewRequest reviewRequest) {
         return reviewsService.createReview(productId, reviewRequest);
     }
 

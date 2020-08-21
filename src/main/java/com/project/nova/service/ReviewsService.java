@@ -17,7 +17,7 @@ public interface ReviewsService {
 
     Review getOneReview(UUID productId, UUID reviewId);
 
-    Review createReview(UUID productId, ReviewRequest reviewRequest) throws Exception;
+    Review createReview(UUID productId, ReviewRequest reviewRequest);
 
     Review updateReview(UUID productId, UUID reviewId, ReviewRequest reviewRequest);
 

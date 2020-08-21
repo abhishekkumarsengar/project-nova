@@ -83,7 +83,7 @@ public class ReviewsServiceImpl implements ReviewsService {
 
     @Transactional
     @Override
-    public Review createReview(UUID productId, ReviewRequest reviewRequest) throws Exception {
+    public Review createReview(UUID productId, ReviewRequest reviewRequest) {
         Integer doesReviewExists = reviewsRepository.checkReviewExists(productId, reviewRequest.getUserId()).get();
         if (doesReviewExists > 0) {
             logger.error("User has already submitted a review for this product");

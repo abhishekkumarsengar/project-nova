@@ -1,6 +1,7 @@
 package com.project.nova.exceptions;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.project.nova.utils.Constants;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.project.nova.utils.Constants.ERROR;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -31,7 +34,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setCode(HttpStatus.BAD_REQUEST);
         errorResponse.setMessage(e.getMessage());
-        return new ResponseEntity<>(new ResponseMessage("Error", errorResponse), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ResponseMessage(ERROR, errorResponse), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -42,7 +45,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setCode(HttpStatus.NOT_FOUND);
         errorResponse.setMessage(e.getMessage());
-        return new ResponseEntity<>(new ResponseMessage("Error", errorResponse), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(new ResponseMessage(ERROR, errorResponse), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(PersistenceException.class)
@@ -53,7 +56,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setCode(HttpStatus.INTERNAL_SERVER_ERROR);
         errorResponse.setMessage(e.getMessage());
-        return new ResponseEntity<>(new ResponseMessage("Error", errorResponse), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new ResponseMessage(ERROR, errorResponse), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(ReviewExistsException.class)
@@ -64,7 +67,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setCode(HttpStatus.CONFLICT);
         errorResponse.setMessage(e.getMessage());
-        return new ResponseEntity<>(new ResponseMessage("Error", errorResponse), HttpStatus.CONFLICT);
+        return new ResponseEntity<>(new ResponseMessage(ERROR, errorResponse), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(UnProcessableEntitiesException.class)
@@ -86,8 +89,8 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toList());
 
         log.error(e.getMessage(), e);
-        return new ResponseEntity<>(new ValidationErrorResponse("Error", validationErrors),
-                HttpStatus.UNPROCESSABLE_ENTITY);
+        return new ResponseEntity<>(new ValidationErrorResponse(ERROR, validationErrors),
+                HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidFormatException.class)
@@ -96,11 +99,11 @@ public class GlobalExceptionHandler {
             throws IOException {
         log.error(errors.getMessage(), errors);
         List<ValidationError> validationErrorList = errors.getPath().stream()
-                .map(error -> new ValidationError(error.getFieldName(), HttpStatus.BAD_REQUEST.toString(),
+                .map(error -> new ValidationError(error.getFieldName(), HttpStatus.UNPROCESSABLE_ENTITY.toString(),
                         errors.getOriginalMessage()))
                 .collect(Collectors.toList());
-        return new ResponseEntity<>(new ValidationErrorResponse("Error", validationErrorList),
-                HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ValidationErrorResponse(ERROR, validationErrorList),
+                HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
 }

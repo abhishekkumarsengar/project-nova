@@ -3,6 +3,7 @@ package com.project.nova.repository;
 import com.project.nova.entity.Review;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ReviewsRepository extends PagingAndSortingRepository<Review, UUID> {
+public interface ReviewsRepository extends JpaRepository<Review, UUID> {
 
     @Transactional
     @Lock(value = LockModeType.PESSIMISTIC_READ)
