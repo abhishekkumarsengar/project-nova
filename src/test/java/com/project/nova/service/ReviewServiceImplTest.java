@@ -12,6 +12,7 @@ import com.project.nova.repository.HelpfulReviewsRepository;
 import com.project.nova.repository.RatingRepository;
 import com.project.nova.repository.RatingRepositoryImpl;
 import com.project.nova.repository.ReviewsRepository;
+import org.json.JSONArray;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -25,10 +26,15 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
 import javax.persistence.PessimisticLockException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static java.util.stream.Collectors.toList;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -62,7 +68,7 @@ public class ReviewServiceImplTest {
 
     // Relace with JSON and map to objects
     @BeforeEach
-    void init() {
+    void init() throws IOException {
         review = new Review();
         reviewRequest = new ReviewRequest();
         rating = new Rating();

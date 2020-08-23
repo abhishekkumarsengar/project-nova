@@ -37,7 +37,6 @@ public class ResponseMessageTest {
     public void responseMessageSetters() throws Exception {
         ResponseMessage responseMessage = new ResponseMessage("success", errorResponse);
         responseMessage.setStatus("success");
-        responseMessage.setErrorResponse(errorResponse);
         ObjectMapper objectMapper = new ObjectMapper();
         String testString = objectMapper.writeValueAsString(responseMessage);
 

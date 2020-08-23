@@ -2,6 +2,7 @@ package com.project.nova.configuration.interceptors;
 
 import com.project.nova.dto.EntityResponse;
 import com.project.nova.utils.Constants;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,15 +13,21 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
 public class ResponseEnvelop implements ResponseBodyAdvice<Object> {
 
+    @Autowired
+    private HttpServletRequest httpServletRequest;
+
     @Override
     public boolean supports(MethodParameter returnType,
                             Class<? extends HttpMessageConverter<?>> converterType) {
-        return true;
+        if (httpServletRequest.getRequestURI().startsWith("/api")) {
+            return true;
+        }
+        return false;
     }
 
     @Override
